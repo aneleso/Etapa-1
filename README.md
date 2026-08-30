@@ -1,7 +1,7 @@
 # Etapa-1
 # Selena Alejandra Ortiz
 
-![Foto de perfil](selena_ortiz.png)
+![Foto de perfil](selena ortiz.png)
 
 **Rol de industria:** Ingeniera Multimedia
 **Ubicación:** [Bogotá-Colombia]
