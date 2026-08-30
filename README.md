@@ -3,7 +3,7 @@
 
 ![Foto de perfil](selena_ortiz.png)
 
-**Rol de industria:** [Rol de industria elegido]
+**Rol de industria:** Ingeniera Multimedia
 **Ubicación:** Bogotá, Colombia
 
 ## Perfil
