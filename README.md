@@ -1,7 +1,7 @@
 # Etapa-1
 # Selena Alejandra Ortiz
 
-![Foto de perfil](fase 1/selena ortiz.png)
+![Foto de perfil](E:\yop\UNIVERSIDAD\2026\Programación para videojuego\Fase 1)
 
 **Rol de industria:** Ingeniera Multimedia
 **Ubicación:** [Bogotá-Colombia]
