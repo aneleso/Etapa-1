@@ -1,3 +1,4 @@
+
 Etapa 1 - Reconocimiento del entorno y armado de equipos con SCV
 
 Descripción de proyecto (para README / ficha)
@@ -40,3 +41,4 @@ Programación
 Producción y calidad
 • Producer / Project Manager
 • QA Tester (control de calidad)
+
