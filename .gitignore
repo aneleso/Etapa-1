@@ -1,0 +1,26 @@
+# Unity generates these folders locally.
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Bb]uild/
+[Bb]uilds/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+.vs/
+.idea/
+*.csproj
+*.sln
+*.slnx
+*.user
+*.pidb
+*.pdb
+*.opendb
+*.VC.db
+
+[Tt]est[Rr]esults/
+
+# The presentation script is local only and must never be committed.
+/local-only/
+Guion_PrimeGame_4_minutos.md

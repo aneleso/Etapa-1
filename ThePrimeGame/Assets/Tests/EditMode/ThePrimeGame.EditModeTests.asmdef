@@ -1,0 +1,6 @@
+{
+  "name": "ThePrimeGame.EditModeTests",
+  "references": ["ThePrimeGame.Runtime"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}
