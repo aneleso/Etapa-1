@@ -1,0 +1,6 @@
+{
+  "name": "ThePrimeGame.Runtime",
+  "rootNamespace": "ThePrimeGame",
+  "references": ["Unity.InputSystem", "UnityEngine.UI"],
+  "autoReferenced": true
+}

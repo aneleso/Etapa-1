@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a413f6303275a97cd944343c939b2094, type: 3}
+  m_Name: PrimeGameAssets
+  m_EditorClassIdentifier: ThePrimeGame.Runtime::ThePrimeGame.PrimeGameAssets
+  blue: {fileID: 21300000, guid: 6399ed4915e18bc4c83c1e218ab2a981, type: 3}
+  mint: {fileID: 21300000, guid: 36da0b33242cbf7428d2a3f58113b5d8, type: 3}
+  cream: {fileID: 21300000, guid: 180e3616018ed294ea79759fa2240f64, type: 3}
+  coral: {fileID: 21300000, guid: 2197c9164b9374a4c8322268f700329d, type: 3}
+  silhouetteWide: {fileID: 21300000, guid: 5673e0e28e6a08443b7f5d6bb6ba8738, type: 3}
+  silhouetteSmall: {fileID: 21300000, guid: bd2adeb53dda2674e9b095195340c95e, type: 3}
+  logo: {fileID: 21300000, guid: 419975d502f0c2d4c8c8aa075d9edff2, type: 3}
+  soundOn: {fileID: 21300000, guid: ea957e5d28b52fc41b72b0521e642e17, type: 3}
+  soundOff: {fileID: 21300000, guid: 01c7bd109fdfad54696062dde61e9360, type: 3}
+  restart: {fileID: 21300000, guid: d7a3e67da8158f74d8172047e1fdb3f8, type: 3}
+  star: {fileID: 21300000, guid: 4cb9b036bc4229741ae6265e694b5485, type: 3}
+  pickup: {fileID: 8300000, guid: 7f59547e240bbf74383220012eb07036, type: 3}
+  snap: {fileID: 8300000, guid: 6888135da3a76aa49b09f1f02c59daac, type: 3}
+  success: {fileID: 8300000, guid: e219c0cdeaaf4444bab0006106938176, type: 3}
+  ambient: {fileID: 8300000, guid: 9302407b1932abf488e2121e6f24f838, type: 3}
