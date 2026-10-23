@@ -24,3 +24,9 @@
 # The presentation script is local only and must never be committed.
 /local-only/
 Guion_PrimeGame_4_minutos.md
+
+# Environment artifacts and scene recovery copies are local only.
+%ALLUSERSPROFILE%/
+Assets/_Recovery/
+Assets/_Recovery.meta
+Assets/InitTestScene*
