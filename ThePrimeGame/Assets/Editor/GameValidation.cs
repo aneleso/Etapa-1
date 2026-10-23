@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace ThePrimeGame.Editor
 {
+    /// <summary>Runs the project tests inside Unity and exports results that remain available after domain reloads.</summary>
     [InitializeOnLoad]
     public static class GameValidation
     {
@@ -18,7 +19,8 @@ namespace ThePrimeGame.Editor
             Api.RegisterCallbacks(new Results());
         }
 
-        [MenuItem("The PrimeGame/Validar juego (EditMode y PlayMode)", false, 20)]
+        /// <summary>Prepares the scene, starts rule tests and only proceeds to PlayMode after they pass.</summary>
+        [MenuItem("The PrimeGame/Validate game (EditMode and PlayMode)", false, 20)]
         public static void RunAll()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
@@ -28,6 +30,7 @@ namespace ThePrimeGame.Editor
             Execute(TestMode.EditMode);
         }
 
+        /// <summary>Filters the runner to this project so unrelated package tests do not alter the reported results.</summary>
         private static void Execute(TestMode mode)
         {
             SessionState.SetString(PhaseKey, mode.ToString());
@@ -44,6 +47,7 @@ namespace ThePrimeGame.Editor
             public void TestStarted(ITestAdaptor test) { }
             public void TestFinished(ITestResultAdaptor result) { }
 
+            /// <summary>Writes the real NUnit results and stops the sequence if rule tests fail.</summary>
             public void RunFinished(ITestResultAdaptor result)
             {
                 string phase = SessionState.GetString(PhaseKey, "");

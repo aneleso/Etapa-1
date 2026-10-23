@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace ThePrimeGame
 {
+    /// <summary>Represents a numbered destination that accepts drag, click and keyboard-submit interaction.</summary>
     public sealed class DropTarget : MonoBehaviour, IDropHandler, IPointerClickHandler,
         ISubmitHandler, ISelectHandler, IDeselectHandler, IPointerEnterHandler, IPointerExitHandler
     {
@@ -17,6 +18,7 @@ namespace ThePrimeGame
         private bool occupied;
         private bool hovered;
 
+        /// <summary>Connects the stable piece identity and focus border to the shared game manager.</summary>
         public void Initialize(GameManager manager, PieceId id, Image focusOutline)
         {
             Manager = manager;
@@ -26,6 +28,7 @@ namespace ThePrimeGame
             RefreshOutline();
         }
 
+        /// <summary>Ignores modal or occupied targets, then asks the manager to validate the dragged piece.</summary>
         public void OnDrop(PointerEventData data)
         {
             if (Manager.InputLocked || occupied) return;
@@ -33,12 +36,14 @@ namespace ThePrimeGame
             if (piece != null) Manager.TryPlace(piece, this);
         }
 
+        /// <summary>Routes a pointer click through the same placement path used by keyboard submission.</summary>
         public void OnPointerClick(PointerEventData data)
         {
             if (data.button == PointerEventData.InputButton.Left && !occupied)
                 Manager.PlaceSelected(this);
         }
 
+        /// <summary>Provides a keyboard alternative to the drag gesture without duplicating placement rules.</summary>
         public void OnSubmit(BaseEventData data)
         {
             if (!occupied) Manager.PlaceSelected(this);
@@ -49,6 +54,7 @@ namespace ThePrimeGame
         public void OnPointerEnter(PointerEventData data) { hovered = true; RefreshOutline(); }
         public void OnPointerExit(PointerEventData data) { hovered = false; RefreshOutline(); }
         public void SetHint(bool value) { hinted = value; RefreshOutline(); }
+        /// <summary>Removes completed targets from keyboard navigation and clears obsolete hints.</summary>
         public void SetOccupied(bool value)
         {
             occupied = value;
@@ -57,6 +63,7 @@ namespace ThePrimeGame
             RefreshOutline();
         }
 
+        /// <summary>Combines hint, hover and focus states while keeping completed targets visually settled.</summary>
         private void RefreshOutline()
         {
             if (outline != null) outline.enabled = !occupied && (hinted || focused || hovered);

@@ -3,6 +3,7 @@ using NUnit.Framework;
 
 namespace ThePrimeGame.Tests
 {
+    /// <summary>Checks rules without rendering, including invalid drops, repeated events, optional ordering and replay.</summary>
     public sealed class GameSessionTests
     {
         [Test]

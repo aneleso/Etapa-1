@@ -1,7 +1,11 @@
+using System;
 using UnityEngine;
 
 namespace ThePrimeGame
 {
+    public enum AudioCue { Ready, Music, Pickup, Snap, Success, Muted, Enabled }
+
+    /// <summary>Plays local music and effects while publishing the same events for visible audio descriptions.</summary>
     public sealed class AudioToggle : MonoBehaviour
     {
         private const string MuteKey = "ThePrimeGame.Muted";
@@ -10,7 +14,9 @@ namespace ThePrimeGame
         private PrimeGameAssets assets;
         public bool IsMuted { get; private set; }
         public bool MusicStarted { get; private set; }
+        public event Action<AudioCue> CueChanged;
 
+        /// <summary>Creates separate sources and restores the player's saved sound preference.</summary>
         public void Initialize(PrimeGameAssets resources)
         {
             assets = resources;
@@ -33,23 +39,29 @@ namespace ThePrimeGame
             if (MusicStarted || music == null || music.clip == null) return;
             MusicStarted = true;
             music.Play();
+            CueChanged?.Invoke(AudioCue.Music);
         }
 
+        /// <summary>Persists the mute choice and publishes a caption even when no sound can be heard.</summary>
         public void Toggle()
         {
             IsMuted = !IsMuted;
             ApplyVolume();
             PlayerPrefs.SetInt(MuteKey, IsMuted ? 1 : 0);
             PlayerPrefs.Save();
+            CueChanged?.Invoke(IsMuted ? AudioCue.Muted : MusicStarted ? AudioCue.Music : AudioCue.Enabled);
         }
 
-        public void Pickup() => Play(assets.pickup, 0.65f);
-        public void Snap() => Play(assets.snap, 0.75f);
-        public void Success() => Play(assets.success, 0.7f);
+        public void Pickup() => Play(assets.pickup, 0.65f, AudioCue.Pickup);
+        public void Snap() => Play(assets.snap, 0.75f, AudioCue.Snap);
+        public void Success() => Play(assets.success, 0.7f, AudioCue.Success);
 
-        private void Play(AudioClip clip, float volume)
+        /// <summary>Starts music after interaction and emits a visual equivalent before optionally playing the effect.</summary>
+        private void Play(AudioClip clip, float volume, AudioCue cue)
         {
             BeginMusic();
+            // Captions remain available when muted; hearing an effect is never required to understand an action.
+            CueChanged?.Invoke(cue);
             if (clip != null && !IsMuted) effects.PlayOneShot(clip, volume);
         }
 

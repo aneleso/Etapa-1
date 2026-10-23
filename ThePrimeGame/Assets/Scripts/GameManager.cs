@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 
 namespace ThePrimeGame
 {
+    /// <summary>Coordinates the rules, interface, input feedback, sound and replay for a single level.</summary>
     public sealed class GameManager : MonoBehaviour
     {
         [SerializeField] private PrimeGameAssets assets;
@@ -20,6 +21,7 @@ namespace ThePrimeGame
 
         public void SetAssets(PrimeGameAssets value) => assets = value;
 
+        /// <summary>Initializes saved preferences and builds the interface only when its resource bundle is assigned.</summary>
         private void Awake()
         {
             if (assets == null)
@@ -35,8 +37,11 @@ namespace ThePrimeGame
             Audio.Initialize(assets);
             Hud = gameObject.AddComponent<GameHud>();
             Hud.Initialize(this, assets);
+            Audio.CueChanged += HandleAudioCue;
+            HandleAudioCue(AudioCue.Ready);
         }
 
+        /// <summary>Selects an available piece and gives the same instruction to pointer and keyboard players.</summary>
         public void SelectPiece(DraggableBlock piece)
         {
             if (InputLocked || piece.IsPlaced || piece.IsReturning || Session.IsComplete) return;
@@ -44,9 +49,10 @@ namespace ThePrimeGame
             ClearSelection();
             Selected = piece;
             piece.SetSelected(true);
-            Hud.Message($"Pieza {PrimeGameAssets.Number(piece.Id)}: elige el destino con el mismo número.");
+            Hud.Message(GameText.Get("pieceSelected", PrimeGameAssets.Number(piece.Id)));
         }
 
+        /// <summary>Removes selection and hints together so stale destinations cannot remain highlighted.</summary>
         public void ClearSelection()
         {
             if (Selected != null) Selected.SetSelected(false);
@@ -54,17 +60,19 @@ namespace ThePrimeGame
             foreach (var target in Hud.Targets) target.SetHint(false);
         }
 
+        /// <summary>Offers a click-or-submit alternative to dragging, with a prompt when no piece is selected.</summary>
         public void PlaceSelected(DropTarget target)
         {
             if (InputLocked || IsDragging) return;
             if (Selected == null)
             {
-                Hud.Message("Primero elige una pieza de tu bandeja.");
+                Hud.Message(GameText.Get("selectFirst"));
                 return;
             }
             TryPlace(Selected, target);
         }
 
+        /// <summary>Uses the session as the authority, then synchronizes the visual lock, progress and feedback.</summary>
         public bool TryPlace(DraggableBlock piece, DropTarget target)
         {
             if (InputLocked || piece == null || target == null || piece.IsReturning) return false;
@@ -73,8 +81,8 @@ namespace ThePrimeGame
             if (result != PlacementResult.Placed)
             {
                 Hud.Message(result == PlacementResult.RequiresLowerPiece
-                    ? "Empieza por la pieza de abajo. Puedes usar Ayuda."
-                    : $"Busca el destino {PrimeGameAssets.Number(piece.Id)} para esta pieza.");
+                    ? GameText.Get("lowerPieceRequired")
+                    : GameText.Get("wrongTarget", PrimeGameAssets.Number(piece.Id)));
                 return false;
             }
             piece.Dock(target);
@@ -83,11 +91,12 @@ namespace ThePrimeGame
             ClearSelection();
             Audio.Snap();
             Hud.UpdateProgress(Session.PlacedCount);
-            Hud.Message(Session.IsComplete ? "¡Lo construiste!" : "¡Encaja! Elige otra pieza cuando quieras.");
+            Hud.Message(Session.IsComplete ? GameText.Get("victoryTitle") : GameText.Get("piecePlaced"));
             if (Session.IsComplete) celebration = StartCoroutine(Celebrate());
             return true;
         }
 
+        /// <summary>Measures tolerance in canvas units so display scaling does not change the difficulty of a drop.</summary>
         public bool TrySnapNearby(DraggableBlock piece)
         {
             var target = Hud.Targets[(int)piece.Id];
@@ -95,6 +104,7 @@ namespace ThePrimeGame
             return distance <= 72f && TryPlace(piece, target);
         }
 
+        /// <summary>Finds a remaining piece and highlights its matching destination without penalties.</summary>
         public void Hint()
         {
             if (InputLocked || IsDragging || Session.IsComplete) return;
@@ -105,15 +115,17 @@ namespace ThePrimeGame
             if (piece == null) return;
             SelectPiece(piece);
             Hud.Targets[(int)piece.Id].SetHint(true);
-            Hud.Message($"La pieza {PrimeGameAssets.Number(piece.Id)} va en el marco resaltado.");
+            Hud.Message(GameText.Get("hint", PrimeGameAssets.Number(piece.Id)));
         }
 
+        /// <summary>Applies persistent source muting and updates the visible sound control.</summary>
         public void ToggleSound()
         {
             Audio.Toggle();
             Hud.UpdateSound(Audio.IsMuted);
         }
 
+        /// <summary>Persists the reduced-motion choice without changing game rules or progress.</summary>
         public void ToggleMotion()
         {
             ReducedMotion = !ReducedMotion;
@@ -122,6 +134,7 @@ namespace ThePrimeGame
             Hud.UpdateMotion(ReducedMotion);
         }
 
+        /// <summary>Protects partial progress with a confirmation dialog and ignores restart during a drag.</summary>
         public void RequestRestart()
         {
             if (IsDragging) return;
@@ -142,10 +155,11 @@ namespace ThePrimeGame
             foreach (var piece in Hud.Pieces) piece.ResetToHome();
             foreach (var target in Hud.Targets) target.SetOccupied(false);
             Hud.UpdateProgress(0);
-            Hud.Message("Elige una pieza. Aquí puedes jugar a tu ritmo.");
+            Hud.Message(GameText.Get("initialStatus"));
             EventSystem.current?.SetSelectedGameObject(Hud.Pieces[0].gameObject);
         }
 
+        /// <summary>Waits for the final snap before showing success; reduced motion removes that delay.</summary>
         private IEnumerator Celebrate()
         {
             yield return new WaitForSecondsRealtime(ReducedMotion ? 0f : 0.3f);
@@ -154,11 +168,20 @@ namespace ThePrimeGame
             celebration = null;
         }
 
+        /// <summary>Returns an interrupted drag safely when the player switches away from the application.</summary>
         private void OnApplicationFocus(bool focused)
         {
             if (focused || Hud == null) return;
             foreach (var piece in Hud.Pieces)
                 if (piece.IsDragging) piece.ReturnHome();
+        }
+
+        /// <summary>Routes each sound cue to text, including cues emitted while sound is muted.</summary>
+        private void HandleAudioCue(AudioCue cue) => Hud.DescribeAudio(cue, Audio.IsMuted);
+
+        private void OnDestroy()
+        {
+            if (Audio != null) Audio.CueChanged -= HandleAudioCue;
         }
     }
 }

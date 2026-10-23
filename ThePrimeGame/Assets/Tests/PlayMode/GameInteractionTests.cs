@@ -7,9 +7,11 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace ThePrimeGame.Tests
 {
+    /// <summary>Verifies scene behavior with both interface events and frame-by-frame Input System devices.</summary>
     public sealed class GameInteractionTests
     {
         private GameManager game;
@@ -18,6 +20,7 @@ namespace ThePrimeGame.Tests
         private int previousMute, previousMotion;
         private bool hadMute, hadMotion;
 
+        /// <summary>Isolates every scenario in a fresh level while preserving the real player preferences for teardown.</summary>
         [UnitySetUp]
         public IEnumerator LoadGame()
         {
@@ -33,6 +36,7 @@ namespace ThePrimeGame.Tests
             Assert.That(game, Is.Not.Null);
         }
 
+        /// <summary>Removes virtual devices and restores preferences so tests do not change a player's saved choices.</summary>
         [TearDown]
         public void RestorePreferences()
         {
@@ -226,12 +230,67 @@ namespace ThePrimeGame.Tests
             Assert.That(game.Hud.Pieces[0].Rect.parent, Is.EqualTo(game.Hud.Targets[0].transform));
         }
 
+        [UnityTest]
+        public IEnumerator AudioDescriptionsRemainAvailableWhenMutedAndAtVictory()
+        {
+            game.ToggleSound();
+            Assert.That(game.Hud.AudioDescription, Is.EqualTo(GameText.Get("audioMuted")));
+            game.SelectPiece(game.Hud.Pieces[0]);
+            Assert.That(game.Hud.AudioDescription, Is.EqualTo(GameText.Get("audioMutedCue", GameText.Get("audioPickup"))));
+            game.PlaceSelected(game.Hud.Targets[0]);
+            Assert.That(game.Hud.AudioDescription, Is.EqualTo(GameText.Get("audioMutedCue", GameText.Get("audioSnap"))));
+            for (int i = 1; i < 4; i++)
+            {
+                game.SelectPiece(game.Hud.Pieces[i]);
+                game.PlaceSelected(game.Hud.Targets[i]);
+            }
+            yield return new WaitForSecondsRealtime(0.4f);
+            Assert.That(game.Hud.VictoryVisible, Is.True);
+            string description = GameText.Get("audioMutedCue", GameText.Get("audioSuccess"));
+            Assert.That(game.Hud.AudioDescription, Is.EqualTo(description));
+            var panel = game.Hud.Canvas.transform.Find("Victory Overlay/Victory Panel");
+            Assert.That(panel, Is.Not.Null);
+            Assert.That(System.Array.Exists(panel.GetComponentsInChildren<Text>(), label => label.text == description), Is.True);
+            foreach (var source in game.GetComponents<AudioSource>()) Assert.That(source.mute, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator StandardControlsExposeVisibleKeyboardFocus()
+        {
+            foreach (var button in game.Hud.Canvas.GetComponentsInChildren<Button>(true))
+            {
+                if (button.GetComponent<DraggableBlock>() != null || button.GetComponent<DropTarget>() != null) continue;
+                Assert.That(button.GetComponent<FocusIndicator>(), Is.Not.Null, button.name);
+            }
+            var help = game.Hud.Canvas.transform.Find("Help Button");
+            var motion = game.Hud.Canvas.transform.Find("Motion Button");
+            EventSystem.current.SetSelectedGameObject(help.gameObject);
+            yield return null;
+            Assert.That(help.GetComponent<FocusIndicator>().IsVisible, Is.True);
+            EventSystem.current.SetSelectedGameObject(motion.gameObject);
+            yield return null;
+            Assert.That(motion.GetComponent<FocusIndicator>().IsVisible, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator EnglishObjectNamesAreIndependentOfLocalizedPlayerText()
+        {
+            Assert.That(game.Hud.Pieces[0].name, Is.EqualTo("Piece 1 Blue"));
+            Assert.That(game.Hud.Targets[0].name, Is.EqualTo("Target 1"));
+            foreach (var item in game.Hud.Canvas.GetComponentsInChildren<Transform>(true))
+                foreach (char character in item.name) Assert.That((int)character, Is.LessThan(128), item.name);
+            Assert.That(System.Array.Exists(game.Hud.Canvas.GetComponentsInChildren<Text>(),
+                label => label.text == GameText.Get("heading")), Is.True);
+            yield return null;
+        }
+
         private static void Click(GameObject target)
         {
             var data = new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left };
             ExecuteEvents.Execute(target, data, ExecuteEvents.pointerClickHandler);
         }
 
+        /// <summary>Distributes pointer states over frames so the UI module processes a real press and release sequence.</summary>
         private IEnumerator MouseClick(Vector2 position)
         {
             InputSystem.QueueStateEvent(virtualMouse, new MouseState { position = position });
@@ -243,6 +302,7 @@ namespace ThePrimeGame.Tests
             yield return null;
         }
 
+        /// <summary>Feeds a virtual keyboard through the Input System instead of bypassing the input module.</summary>
         private IEnumerator KeyPress(Key key)
         {
             InputSystem.QueueStateEvent(virtualKeyboard, new KeyboardState(key));
@@ -252,6 +312,7 @@ namespace ThePrimeGame.Tests
             yield return null;
         }
 
+        /// <summary>Keeps the button held over several movement frames to exercise drag thresholds and target raycasts.</summary>
         private IEnumerator MouseDrag(Vector2 from, Vector2 to)
         {
             InputSystem.QueueStateEvent(virtualMouse, new MouseState { position = from });
@@ -269,6 +330,7 @@ namespace ThePrimeGame.Tests
             yield return null;
         }
 
+        /// <summary>Exports the rendered game as test evidence without capturing desktop or account information.</summary>
         private static IEnumerator Capture(string name)
         {
             string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../TestResults"));

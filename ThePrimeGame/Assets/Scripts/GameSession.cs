@@ -15,6 +15,7 @@ namespace ThePrimeGame
 
         public bool IsPlaced(PieceId id) => placed[CheckedIndex(id)];
 
+        /// <summary>Validates a drop before changing progress; repeated events cannot count the same piece twice.</summary>
         public PlacementResult TryPlace(PieceId piece, PieceId target)
         {
             int index = CheckedIndex(piece);
@@ -30,6 +31,7 @@ namespace ThePrimeGame
             return PlacementResult.Placed;
         }
 
+        /// <summary>Clears placed pieces while retaining the optional ordering rule for the next game.</summary>
         public void Reset()
         {
             Array.Clear(placed, 0, placed.Length);

@@ -1,0 +1,184 @@
+{
+  "entries": [
+    {
+      "key": "heading",
+      "value": "Construye a tu ritmo"
+    },
+    {
+      "key": "subtitle",
+      "value": "Cuatro piezas, una pequeña construcción."
+    },
+    {
+      "key": "instruction",
+      "value": "Arrastra una pieza o selecciónala y toca su destino."
+    },
+    {
+      "key": "trayTitle",
+      "value": "Tus piezas"
+    },
+    {
+      "key": "trayNote",
+      "value": "Los números te ayudan a encontrar su lugar."
+    },
+    {
+      "key": "boardTitle",
+      "value": "Tu construcción"
+    },
+    {
+      "key": "progress",
+      "value": "{0} de 4 piezas"
+    },
+    {
+      "key": "pieceCaption",
+      "value": "{0} · {1}"
+    },
+    {
+      "key": "initialStatus",
+      "value": "Elige una pieza. Aquí puedes jugar a tu ritmo."
+    },
+    {
+      "key": "helpButton",
+      "value": "Ayuda"
+    },
+    {
+      "key": "motionOn",
+      "value": "Animaciones: sí"
+    },
+    {
+      "key": "motionOff",
+      "value": "Animaciones: no"
+    },
+    {
+      "key": "keyboardLegend",
+      "value": "Teclado: Tab y flechas · Enter para elegir · H ayuda · M sonido · R reiniciar"
+    },
+    {
+      "key": "soundCaption",
+      "value": "Sonido"
+    },
+    {
+      "key": "restartButton",
+      "value": "Reiniciar"
+    },
+    {
+      "key": "selectionCancelled",
+      "value": "Elige otra pieza cuando quieras."
+    },
+    {
+      "key": "soundOff",
+      "value": "Sonido: no"
+    },
+    {
+      "key": "soundOn",
+      "value": "Sonido: sí"
+    },
+    {
+      "key": "restartTitle",
+      "value": "¿Empezar de nuevo?"
+    },
+    {
+      "key": "restartNote",
+      "value": "Las cuatro piezas volverán a tu bandeja."
+    },
+    {
+      "key": "continueButton",
+      "value": "Seguir jugando"
+    },
+    {
+      "key": "confirmRestartButton",
+      "value": "Volver a empezar"
+    },
+    {
+      "key": "victoryTitle",
+      "value": "¡Lo construiste!"
+    },
+    {
+      "key": "victoryNote",
+      "value": "Una pequeña construcción, un gran logro."
+    },
+    {
+      "key": "replayButton",
+      "value": "Jugar otra vez"
+    },
+    {
+      "key": "viewBuildButton",
+      "value": "Ver mi construcción"
+    },
+    {
+      "key": "pieceSelected",
+      "value": "Pieza {0}: elige el destino con el mismo número."
+    },
+    {
+      "key": "selectFirst",
+      "value": "Primero elige una pieza de tu bandeja."
+    },
+    {
+      "key": "lowerPieceRequired",
+      "value": "Empieza por la pieza de abajo. Puedes usar Ayuda."
+    },
+    {
+      "key": "wrongTarget",
+      "value": "Busca el destino {0} para esta pieza."
+    },
+    {
+      "key": "piecePlaced",
+      "value": "¡Encaja! Elige otra pieza cuando quieras."
+    },
+    {
+      "key": "hint",
+      "value": "La pieza {0} va en el marco resaltado."
+    },
+    {
+      "key": "blueName",
+      "value": "Azul"
+    },
+    {
+      "key": "mintName",
+      "value": "Menta"
+    },
+    {
+      "key": "creamName",
+      "value": "Crema"
+    },
+    {
+      "key": "coralName",
+      "value": "Coral"
+    },
+    {
+      "key": "fallbackPieceName",
+      "value": "Pieza"
+    },
+    {
+      "key": "audioReady",
+      "value": "[Audio: música suave y efectos breves, sin voces]"
+    },
+    {
+      "key": "audioMusic",
+      "value": "[Música suave de fondo]"
+    },
+    {
+      "key": "audioPickup",
+      "value": "[Clic suave: pieza elegida]"
+    },
+    {
+      "key": "audioSnap",
+      "value": "[Sonido de encaje: pieza colocada]"
+    },
+    {
+      "key": "audioSuccess",
+      "value": "[Campanilla de logro]"
+    },
+    {
+      "key": "audioMuted",
+      "value": "[Audio silenciado]"
+    },
+    {
+      "key": "audioEnabled",
+      "value": "[Audio activado]"
+    },
+    {
+      "key": "audioMutedCue",
+      "value": "{0} · sin sonido"
+    }
+  ]
+}

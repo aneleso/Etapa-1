@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace ThePrimeGame
 {
+    /// <summary>Keeps supplied art and audio references separate from rules and localized display text.</summary>
     [CreateAssetMenu(menuName = "The PrimeGame/Art and audio")]
     public sealed class PrimeGameAssets : ScriptableObject
     {
@@ -21,6 +22,7 @@ namespace ThePrimeGame
         public AudioClip success;
         public AudioClip ambient;
 
+        /// <summary>Returns the original sprite for a stable piece identity rather than relying on hierarchy names.</summary>
         public Sprite Piece(PieceId id)
         {
             switch (id)
@@ -33,15 +35,16 @@ namespace ThePrimeGame
             }
         }
 
+        /// <summary>Resolves a player-facing color label from localization data instead of embedding it in source.</summary>
         public static string PieceName(PieceId id)
         {
             switch (id)
             {
-                case PieceId.Blue: return "Azul";
-                case PieceId.Mint: return "Menta";
-                case PieceId.Cream: return "Crema";
-                case PieceId.Coral: return "Coral";
-                default: return "Pieza";
+                case PieceId.Blue: return GameText.Get("blueName");
+                case PieceId.Mint: return GameText.Get("mintName");
+                case PieceId.Cream: return GameText.Get("creamName");
+                case PieceId.Coral: return GameText.Get("coralName");
+                default: return GameText.Get("fallbackPieceName");
             }
         }
 

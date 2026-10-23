@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace ThePrimeGame
 {
+    /// <summary>Provides pointer dragging and keyboard selection while keeping each piece anchored to a known home.</summary>
     public sealed class DraggableBlock : MonoBehaviour, IBeginDragHandler, IDragHandler,
         IEndDragHandler, IPointerClickHandler, ISubmitHandler, ISelectHandler, IDeselectHandler,
         IPointerEnterHandler, IPointerExitHandler
@@ -27,6 +28,7 @@ namespace ThePrimeGame
         private bool hovered;
         private int dragEndedFrame = -1;
 
+        /// <summary>Caches the home slot, input components and outline used by later animation and reset operations.</summary>
         public void Initialize(GameManager manager, PieceId id, RectTransform homeSlot, Image focusOutline)
         {
             Manager = manager;
@@ -39,6 +41,7 @@ namespace ThePrimeGame
             RefreshOutline();
         }
 
+        /// <summary>Suppresses the click generated at the end of a drag to avoid selecting a piece twice.</summary>
         public void OnPointerClick(PointerEventData data)
         {
             if (data.button == PointerEventData.InputButton.Left && Time.frameCount != dragEndedFrame)
@@ -46,11 +49,13 @@ namespace ThePrimeGame
         }
 
         public void OnSubmit(BaseEventData data) => Choose();
+        /// <summary>Rejects locked, moving or modal-blocked pieces before forwarding selection to the manager.</summary>
         private void Choose()
         {
             if (!IsPlaced && !IsReturning && !Manager.InputLocked) Manager.SelectPiece(this);
         }
 
+        /// <summary>Starts one drag at a time and lets raycasts pass through the piece to the destination below it.</summary>
         public void OnBeginDrag(PointerEventData data)
         {
             if (data.button != PointerEventData.InputButton.Left || IsPlaced || IsReturning || Manager.InputLocked || Manager.IsDragging) return;
@@ -64,11 +69,13 @@ namespace ThePrimeGame
             group.blocksRaycasts = false;
         }
 
+        /// <summary>Preserves the initial grab offset so the block does not jump to its center under the pointer.</summary>
         public void OnDrag(PointerEventData data)
         {
             if (IsDragging && !IsPlaced) Rect.position = ScreenWorld(data) + grabOffset;
         }
 
+        /// <summary>Tries the actual drop target first; nearby snapping is only allowed over empty space.</summary>
         public void OnEndDrag(PointerEventData data)
         {
             if (!IsDragging && !IsPlaced) return;
@@ -83,6 +90,7 @@ namespace ThePrimeGame
             ReturnHome();
         }
 
+        /// <summary>Locks the piece before animation so repeated drop or click events cannot place it again.</summary>
         public void Dock(DropTarget target)
         {
             StopMotion();
@@ -96,6 +104,7 @@ namespace ThePrimeGame
             motion = StartCoroutine(MoveTo(target.Rect, true));
         }
 
+        /// <summary>Returns an unsuccessful drop without an error sound or a progress penalty.</summary>
         public void ReturnHome()
         {
             StopMotion();
@@ -108,6 +117,7 @@ namespace ThePrimeGame
             motion = StartCoroutine(MoveTo(home, false));
         }
 
+        /// <summary>Cancels in-flight movement before restoring every input and transform state for replay.</summary>
         public void ResetToHome()
         {
             StopMotion();
@@ -122,6 +132,7 @@ namespace ThePrimeGame
             RefreshOutline();
         }
 
+        /// <summary>Updates the future home size during window resizing without disrupting an active drag.</summary>
         public void SetHomeSize(Vector2 size)
         {
             homeSize = size;
@@ -135,6 +146,7 @@ namespace ThePrimeGame
         public void SetSelected(bool value) { selected = value; RefreshOutline(); }
         private void RefreshOutline() { if (outline != null) outline.enabled = !IsPlaced && (focused || selected || hovered); }
 
+        /// <summary>Converts screen coordinates into the overlay canvas coordinate system for mouse or touch.</summary>
         private Vector3 ScreenWorld(PointerEventData data)
         {
             RectTransformUtility.ScreenPointToLocalPointInRectangle(Manager.Hud.DragLayer,
@@ -142,6 +154,7 @@ namespace ThePrimeGame
             return Manager.Hud.DragLayer.TransformPoint(local);
         }
 
+        /// <summary>Animates with unscaled time and recalculates sizes while resizing; reduced motion completes instantly.</summary>
         private IEnumerator MoveTo(RectTransform destination, bool placed)
         {
             Vector3 start = Rect.position;
@@ -166,6 +179,7 @@ namespace ThePrimeGame
             motion = null;
         }
 
+        /// <summary>Stops old coroutines before another placement or restart can change the same transform.</summary>
         private void StopMotion()
         {
             if (motion != null) StopCoroutine(motion);

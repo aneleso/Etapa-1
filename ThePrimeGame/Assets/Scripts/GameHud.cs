@@ -18,6 +18,7 @@ namespace ThePrimeGame
         public bool ModalOpen => restartOverlay.gameObject.activeSelf || victoryOverlay.gameObject.activeSelf;
         public bool VictoryVisible => victoryOverlay.gameObject.activeSelf;
         public string StatusMessage => status.text;
+        public string AudioDescription => audioDescription.text;
         private GameManager manager;
         private PrimeGameAssets assets;
         private Font font;
@@ -26,13 +27,14 @@ namespace ThePrimeGame
         private Texture2D roundedTexture;
         private Texture2D borderTexture;
         private RectTransform root, logo, heading, subtitle, tray, board;
-        private RectTransform instruction, statusRect, keyboardLegend;
+        private RectTransform instruction, statusRect, audioDescriptionRect, keyboardLegend;
         private readonly RectTransform[] cards = new RectTransform[4];
         private readonly RectTransform[] homes = new RectTransform[4];
         private readonly Text[] captions = new Text[4];
         private readonly List<Selectable> navigation = new List<Selectable>();
         private RectTransform trayTitle, trayNote, boardTitle, progressRect;
         private Text status, progress, motionText, soundText;
+        private Text audioDescription, restartAudioDescription, victoryAudioDescription;
         private Image soundImage;
         private Button soundButton, restartButton, helpButton, motionButton;
         private RectTransform restartOverlay, restartPanel, victoryOverlay, victoryPanel;
@@ -40,10 +42,11 @@ namespace ThePrimeGame
         private RectTransform starRect;
         private int lastWidth, lastHeight;
         private float scale;
-        private readonly Color ink = new Color32(39, 61, 73, 255);
-        private readonly Color mutedInk = new Color32(72, 91, 101, 255);
-        private readonly Color accent = new Color32(36, 100, 111, 255);
+        private readonly Color ink = GamePalette.Ink;
+        private readonly Color mutedInk = GamePalette.MutedInk;
+        private readonly Color accent = GamePalette.Accent;
 
+        /// <summary>Builds English-named objects and localized labels, then connects a single accessible input module.</summary>
         public void Initialize(GameManager game, PrimeGameAssets resources)
         {
             manager = game;
@@ -71,40 +74,44 @@ namespace ThePrimeGame
                 module.submit.action.AddBinding("<Keyboard>/space");
                 module.enabled = true;
             }
-            Panel("Background", root, new Color32(250, 248, 243, 255), false, false);
+            Panel("Background", root, GamePalette.Background, false, false);
             logo = Picture("The PrimeGame", root, assets.logo);
-            heading = Label("Construye a tu ritmo", root, 32, TextAnchor.MiddleLeft).rectTransform;
-            subtitle = Label("Cuatro piezas, una pequeña construcción.", root, 21, TextAnchor.MiddleLeft).rectTransform;
-            instruction = Label("Arrastra una pieza o selecciónala y toca su destino.", root, 22, TextAnchor.MiddleCenter).rectTransform;
-            tray = Panel("Tus piezas", root, new Color32(238, 243, 240, 255));
-            board = Panel("Construcción", root, Color.white);
-            trayTitle = Label("Tus piezas", tray, 25, TextAnchor.MiddleLeft).rectTransform;
-            trayNote = Label("Los números te ayudan a encontrar su lugar.", tray, 18, TextAnchor.MiddleLeft).rectTransform;
-            boardTitle = Label("Tu construcción", board, 25, TextAnchor.MiddleLeft).rectTransform;
-            progress = Label("0 de 4 piezas", board, 22, TextAnchor.MiddleRight);
+            heading = Label(GameText.Get("heading"), root, 32, TextAnchor.MiddleLeft).rectTransform;
+            subtitle = Label(GameText.Get("subtitle"), root, 21, TextAnchor.MiddleLeft).rectTransform;
+            instruction = Label(GameText.Get("instruction"), root, 22, TextAnchor.MiddleCenter).rectTransform;
+            tray = Panel("Piece Tray", root, GamePalette.Tray);
+            board = Panel("Construction Board", root, Color.white);
+            trayTitle = Label(GameText.Get("trayTitle"), tray, 25, TextAnchor.MiddleLeft).rectTransform;
+            trayNote = Label(GameText.Get("trayNote"), tray, 18, TextAnchor.MiddleLeft).rectTransform;
+            boardTitle = Label(GameText.Get("boardTitle"), board, 25, TextAnchor.MiddleLeft).rectTransform;
+            progress = Label(GameText.Get("progress", 0), board, 22, TextAnchor.MiddleRight);
             progressRect = progress.rectTransform;
 
             for (int i = 0; i < 4; i++)
             {
                 var id = (PieceId)i;
-                cards[i] = Panel("Pieza " + (i + 1), tray, Color.white);
-                homes[i] = Empty("Origen", cards[i]);
-                var pieceRoot = Panel("Pieza " + (i + 1) + " " + PrimeGameAssets.PieceName(id), homes[i], Color.clear, true, false);
+                cards[i] = Panel("Piece Card " + (i + 1), tray, Color.white);
+                homes[i] = Empty("Home Slot", cards[i]);
+                var pieceRoot = Panel("Piece " + (i + 1) + " " + id, homes[i], Color.clear, true, false);
                 var pieceButton = MakeSelectable(pieceRoot);
                 var pieceOutline = FocusRing(pieceRoot);
-                var face = Picture("Bloque original", pieceRoot, assets.Piece(id));
+                var face = Picture("Original Block", pieceRoot, assets.Piece(id));
                 Fill(face);
                 var number = Label((i + 1).ToString(), pieceRoot, 30, TextAnchor.MiddleCenter);
                 Fill(number.rectTransform, 0, 8, 0, 0);
                 Pieces[i] = pieceRoot.gameObject.AddComponent<DraggableBlock>();
                 Pieces[i].Initialize(manager, id, homes[i], pieceOutline);
                 navigation.Add(pieceButton);
-                captions[i] = Label($"{i + 1} · {PrimeGameAssets.PieceName(id)}", cards[i], 22, TextAnchor.MiddleCenter);
+                captions[i] = Label(GameText.Get("pieceCaption", i + 1, PrimeGameAssets.PieceName(id)), cards[i], 22, TextAnchor.MiddleCenter);
 
-                var targetRoot = Panel("Destino " + (i + 1), board, Color.clear, true, false);
+                var targetRoot = Panel("Target " + (i + 1), board, Color.clear, true, false);
                 var targetButton = MakeSelectable(targetRoot);
+                // The original pastel silhouette is decorative; this extra boundary keeps the destination perceivable.
+                var boundary = Panel("Target Boundary", targetRoot, mutedInk);
+                boundary.GetComponent<Image>().sprite = border;
+                Fill(boundary);
                 var targetOutline = FocusRing(targetRoot);
-                var silhouette = Picture("Silueta original", targetRoot,
+                var silhouette = Picture("Original Silhouette", targetRoot,
                     id == PieceId.Coral ? assets.silhouetteSmall : assets.silhouetteWide);
                 Fill(silhouette);
                 var targetNumber = Label((i + 1).ToString(), targetRoot, 30, TextAnchor.MiddleCenter);
@@ -115,20 +122,22 @@ namespace ThePrimeGame
             }
             foreach (var target in Targets) navigation.Add(target.GetComponent<Button>());
 
-            status = Label("Elige una pieza. Aquí puedes jugar a tu ritmo.", root, 22, TextAnchor.MiddleCenter);
+            status = Label(GameText.Get("initialStatus"), root, 22, TextAnchor.MiddleCenter);
             status.color = accent;
             statusRect = status.rectTransform;
-            helpButton = TextButton("Ayuda", root, manager.Hint);
-            motionButton = TextButton("Animaciones: sí", root, manager.ToggleMotion);
+            audioDescription = Label(GameText.Get("audioReady"), root, 18, TextAnchor.MiddleCenter);
+            audioDescriptionRect = audioDescription.rectTransform;
+            helpButton = TextButton("Help Button", GameText.Get("helpButton"), root, manager.Hint);
+            motionButton = TextButton("Motion Button", GameText.Get("motionOn"), root, manager.ToggleMotion);
             motionText = motionButton.GetComponentInChildren<Text>();
-            keyboardLegend = Label("Teclado: Tab y flechas · Enter para elegir · H ayuda · M sonido · R reiniciar", root,
+            keyboardLegend = Label(GameText.Get("keyboardLegend"), root,
                 16, TextAnchor.MiddleCenter).rectTransform;
-            DragLayer = Empty("Piezas en movimiento", root);
+            DragLayer = Empty("Moving Pieces", root);
             Fill(DragLayer);
             BuildOverlays();
             // The sound control remains above modal overlays and is always reachable.
-            soundButton = IconButton("Sonido", root, assets.soundOn, manager.ToggleSound, out soundImage, out soundText);
-            restartButton = IconButton("Reiniciar", root, assets.restart, manager.RequestRestart, out _, out _);
+            soundButton = IconButton("Sound Button", GameText.Get("soundCaption"), root, assets.soundOn, manager.ToggleSound, out soundImage, out soundText);
+            restartButton = IconButton("Restart Button", GameText.Get("restartButton"), root, assets.restart, manager.RequestRestart, out _, out _);
             navigation.Add(soundButton);
             navigation.Add(restartButton);
             navigation.Add(helpButton);
@@ -139,6 +148,7 @@ namespace ThePrimeGame
             RefreshNavigation();
         }
 
+        /// <summary>Handles display changes and shortcut keys while respecting drag and modal input boundaries.</summary>
         private void Update()
         {
             if (Screen.width != lastWidth || Screen.height != lastHeight) Layout();
@@ -151,7 +161,7 @@ namespace ThePrimeGame
             {
                 if (restartOverlay.gameObject.activeSelf) HideModal();
                 else if (VictoryVisible) HideVictory();
-                else { manager.ClearSelection(); Message("Elige otra pieza cuando quieras."); }
+                else { manager.ClearSelection(); Message(GameText.Get("selectionCancelled")); }
             }
             if (ModalOpen || manager.IsDragging) return;
             if (keyboard.hKey.wasPressedThisFrame) manager.Hint();
@@ -162,18 +172,41 @@ namespace ThePrimeGame
         }
 
         public void Message(string text) => status.text = text;
+
+        /// <summary>Mirrors sound events in text and keeps their descriptions readable inside either dialog.</summary>
+        public void DescribeAudio(AudioCue cue, bool muted)
+        {
+            string key;
+            switch (cue)
+            {
+                case AudioCue.Music: key = "audioMusic"; break;
+                case AudioCue.Pickup: key = "audioPickup"; break;
+                case AudioCue.Snap: key = "audioSnap"; break;
+                case AudioCue.Success: key = "audioSuccess"; break;
+                case AudioCue.Muted: key = "audioMuted"; break;
+                case AudioCue.Enabled: key = "audioEnabled"; break;
+                default: key = "audioReady"; break;
+            }
+            string description = GameText.Get(key);
+            if (muted && cue != AudioCue.Muted) description = GameText.Get("audioMutedCue", description);
+            audioDescription.text = description;
+            restartAudioDescription.text = description;
+            victoryAudioDescription.text = description;
+        }
+        /// <summary>Refreshes both the count and navigation after a piece becomes unavailable.</summary>
         public void UpdateProgress(int count)
         {
-            progress.text = $"{count} de 4 piezas";
+            progress.text = GameText.Get("progress", count);
             RefreshNavigation();
         }
         public void UpdateSound(bool muted)
         {
             soundImage.sprite = muted ? assets.soundOff : assets.soundOn;
-            soundText.text = muted ? "Sonido: no" : "Sonido: sí";
+            soundText.text = muted ? GameText.Get("soundOff") : GameText.Get("soundOn");
         }
-        public void UpdateMotion(bool reduced) => motionText.text = reduced ? "Animaciones: no" : "Animaciones: sí";
+        public void UpdateMotion(bool reduced) => motionText.text = reduced ? GameText.Get("motionOff") : GameText.Get("motionOn");
 
+        /// <summary>Moves focus into the confirmation dialog to keep underlying controls out of the keyboard path.</summary>
         public void ShowRestartConfirmation()
         {
             restartOverlay.gameObject.SetActive(true);
@@ -181,6 +214,7 @@ namespace ThePrimeGame
             EventSystem.current.SetSelectedGameObject(keepPlaying.gameObject);
         }
 
+        /// <summary>Closes restart confirmation and restores focus to a usable game control.</summary>
         public void HideModal()
         {
             restartOverlay.gameObject.SetActive(false);
@@ -189,6 +223,7 @@ namespace ThePrimeGame
                 ? manager.Selected.gameObject : helpButton.gameObject);
         }
 
+        /// <summary>Shows the achievement and starts focus on the action that begins a new game.</summary>
         public void ShowVictory()
         {
             victoryOverlay.gameObject.SetActive(true);
@@ -197,6 +232,7 @@ namespace ThePrimeGame
             StartCoroutine(AnimateStar());
         }
 
+        /// <summary>Restores the construction view and puts keyboard focus on restart.</summary>
         public void HideVictory()
         {
             victoryOverlay.gameObject.SetActive(false);
@@ -205,6 +241,7 @@ namespace ThePrimeGame
             EventSystem.current?.SetSelectedGameObject(restartButton.gameObject);
         }
 
+        /// <summary>Uses one short, non-flashing animation and exits immediately when reduced motion is enabled.</summary>
         private IEnumerator AnimateStar()
         {
             float elapsed = 0f;
@@ -217,35 +254,41 @@ namespace ThePrimeGame
             starRect.localScale = Vector3.one;
         }
 
+        /// <summary>Creates progress-protecting and success dialogs with their own visible audio descriptions.</summary>
         private void BuildOverlays()
         {
-            restartOverlay = Panel("Confirmar reinicio", root, new Color32(39, 61, 73, 145), true, false);
-            restartPanel = Panel("Volver a empezar", restartOverlay, new Color32(250, 248, 243, 255));
-            var title = Label("¿Empezar de nuevo?", restartPanel, 30, TextAnchor.MiddleCenter);
-            var note = Label("Las cuatro piezas volverán a tu bandeja.", restartPanel, 22, TextAnchor.MiddleCenter);
+            restartOverlay = Panel("Restart Confirmation Overlay", root, new Color32(39, 61, 73, 145), true, false);
+            restartPanel = Panel("Restart Confirmation Panel", restartOverlay, new Color32(250, 248, 243, 255));
+            var title = Label(GameText.Get("restartTitle"), restartPanel, 30, TextAnchor.MiddleCenter);
+            var note = Label(GameText.Get("restartNote"), restartPanel, 22, TextAnchor.MiddleCenter);
+            restartAudioDescription = Label(GameText.Get("audioReady"), restartPanel, 18, TextAnchor.MiddleCenter);
             Place(title.rectTransform, 20, 25, 480, 50);
             Place(note.rectTransform, 20, 83, 480, 55);
-            keepPlaying = TextButton("Seguir jugando", restartPanel, HideModal);
-            confirmRestart = TextButton("Volver a empezar", restartPanel, manager.Restart);
+            Place(restartAudioDescription.rectTransform, 20, 139, 480, 25);
+            keepPlaying = TextButton("Continue Button", GameText.Get("continueButton"), restartPanel, HideModal);
+            confirmRestart = TextButton("Confirm Restart Button", GameText.Get("confirmRestartButton"), restartPanel, manager.Restart);
             Place((RectTransform)keepPlaying.transform, 30, 168, 220, 62);
             Place((RectTransform)confirmRestart.transform, 270, 168, 220, 62);
             restartOverlay.gameObject.SetActive(false);
 
-            victoryOverlay = Panel("Construcción terminada", root, new Color32(250, 248, 243, 230), true, false);
-            victoryPanel = Panel("Celebración", victoryOverlay, Color.white);
-            starRect = Picture("Estrella de logro", victoryPanel, assets.star);
+            victoryOverlay = Panel("Victory Overlay", root, new Color32(250, 248, 243, 230), true, false);
+            victoryPanel = Panel("Victory Panel", victoryOverlay, Color.white);
+            starRect = Picture("Achievement Star", victoryPanel, assets.star);
             Place(starRect, 185, 22, 150, 150);
-            var victoryTitle = Label("¡Lo construiste!", victoryPanel, 34, TextAnchor.MiddleCenter);
-            var victoryNote = Label("Una pequeña construcción, un gran logro.", victoryPanel, 22, TextAnchor.MiddleCenter);
+            var victoryTitle = Label(GameText.Get("victoryTitle"), victoryPanel, 34, TextAnchor.MiddleCenter);
+            var victoryNote = Label(GameText.Get("victoryNote"), victoryPanel, 22, TextAnchor.MiddleCenter);
+            victoryAudioDescription = Label(GameText.Get("audioSuccess"), victoryPanel, 18, TextAnchor.MiddleCenter);
             Place(victoryTitle.rectTransform, 20, 176, 480, 52);
-            Place(victoryNote.rectTransform, 20, 230, 480, 50);
-            replay = TextButton("Jugar otra vez", victoryPanel, manager.Restart);
-            viewBuild = TextButton("Ver mi construcción", victoryPanel, HideVictory);
+            Place(victoryNote.rectTransform, 20, 230, 480, 40);
+            Place(victoryAudioDescription.rectTransform, 20, 272, 480, 25);
+            replay = TextButton("Replay Button", GameText.Get("replayButton"), victoryPanel, manager.Restart);
+            viewBuild = TextButton("View Construction Button", GameText.Get("viewBuildButton"), victoryPanel, HideVictory);
             Place((RectTransform)replay.transform, 30, 302, 220, 62);
             Place((RectTransform)viewBuild.transform, 270, 302, 220, 62);
             victoryOverlay.gameObject.SetActive(false);
         }
 
+        /// <summary>Wraps Tab navigation across currently usable controls, including reverse navigation with Shift.</summary>
         private void MoveFocus(int direction)
         {
             var options = FocusOptions();
@@ -257,6 +300,7 @@ namespace ThePrimeGame
             EventSystem.current.SetSelectedGameObject(options[index].gameObject);
         }
 
+        /// <summary>Limits focus to the open dialog and sound control, or to the remaining gameplay controls.</summary>
         private List<Selectable> FocusOptions()
         {
             var options = new List<Selectable>();
@@ -287,6 +331,7 @@ namespace ThePrimeGame
             }
         }
 
+        /// <summary>Computes layout in canvas units and reserves separate space for instructions, captions and controls.</summary>
         private void Layout()
         {
             lastWidth = Screen.width;
@@ -298,7 +343,7 @@ namespace ThePrimeGame
             float h = Screen.height / scale;
             bool portrait = h > w * 1.08f;
             float header = portrait ? 200 : 122;
-            float bottom = portrait ? 150 : 112;
+            float bottom = portrait ? 176 : 152;
             float contentHeight = h - header - bottom;
             Place(logo, 24, 14, portrait ? 110 : 108, 84);
             Place(heading, portrait ? 146 : 154, 23, w - (portrait ? 170 : 430), 48);
@@ -340,6 +385,7 @@ namespace ThePrimeGame
             foreach (var piece in Pieces)
                 if (piece.IsPlaced) piece.Rect.sizeDelta = Targets[(int)piece.Id].Rect.sizeDelta;
             Place(statusRect, 24, h - bottom + 4, w - 48, portrait ? 58 : 38);
+            Place(audioDescriptionRect, 24, h - 109, w - 48, 27);
             Place((RectTransform)helpButton.transform, (w - 410) / 2, h - 74, 180, 52);
             Place((RectTransform)motionButton.transform, (w - 410) / 2 + 194, h - 74, 216, 52);
             Place(keyboardLegend, 24, h - 22, w - 48, 20);
@@ -348,6 +394,7 @@ namespace ThePrimeGame
             LayoutOverlay(victoryOverlay, victoryPanel, header, w, h, 390);
         }
 
+        /// <summary>Centers each dialog and scales it to fit narrow windows without cropping its buttons.</summary>
         private static void LayoutOverlay(RectTransform overlay, RectTransform panel, float top, float w, float h, float panelHeight)
         {
             Place(overlay, 0, top, w, h - top);
@@ -358,6 +405,7 @@ namespace ThePrimeGame
             panel.sizeDelta = new Vector2(520, panelHeight);
         }
 
+        /// <summary>Creates a named transform with stable parenting before other interface components are added.</summary>
         private RectTransform Empty(string name, Transform parent)
         {
             var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
@@ -365,6 +413,7 @@ namespace ThePrimeGame
             return rect;
         }
 
+        /// <summary>Creates a decorative or interactive surface with explicit raycast behavior.</summary>
         private RectTransform Panel(string name, Transform parent, Color color, bool raycast = false, bool round = true)
         {
             var rect = Empty(name, parent);
@@ -376,6 +425,7 @@ namespace ThePrimeGame
             return rect;
         }
 
+        /// <summary>Preserves original sprite proportions and lets input reach the parent control.</summary>
         private RectTransform Picture(string name, Transform parent, Sprite sprite)
         {
             var rect = Empty(name, parent);
@@ -386,9 +436,10 @@ namespace ThePrimeGame
             return rect;
         }
 
+        /// <summary>Keeps the object name in English while allowing its visible content to come from localization.</summary>
         private Text Label(string text, Transform parent, int size, TextAnchor alignment)
         {
-            var rect = Empty(text, parent);
+            var rect = Empty("Text", parent);
             var label = rect.gameObject.AddComponent<Text>();
             label.text = text;
             label.font = font;
@@ -401,9 +452,10 @@ namespace ThePrimeGame
             return label;
         }
 
+        /// <summary>Creates a transparent-centered border that never covers the information inside a focused control.</summary>
         private Image FocusRing(RectTransform parent)
         {
-            var ring = Panel("Foco visible", parent, accent);
+            var ring = Panel("Focus Indicator", parent, accent);
             Fill(ring, -6, -6, -6, -6);
             var image = ring.GetComponent<Image>();
             image.sprite = border;
@@ -411,6 +463,7 @@ namespace ThePrimeGame
             return image;
         }
 
+        /// <summary>Applies shared interaction colors; explicit focus paths are assigned after all controls exist.</summary>
         private Button MakeSelectable(RectTransform rect)
         {
             var button = rect.gameObject.AddComponent<Button>();
@@ -419,37 +472,42 @@ namespace ThePrimeGame
             var colors = button.colors;
             colors.normalColor = Color.white;
             colors.highlightedColor = new Color32(217, 235, 233, 255);
-            colors.selectedColor = new Color32(185, 218, 215, 255);
-            colors.pressedColor = new Color32(168, 205, 202, 255);
+            colors.selectedColor = GamePalette.SelectedTint;
+            colors.pressedColor = GamePalette.PressedTint;
             colors.fadeDuration = 0.12f;
             button.colors = colors;
             return button;
         }
 
-        private Button TextButton(string text, Transform parent, UnityEngine.Events.UnityAction action)
+        /// <summary>Combines a readable caption with a visible focus indicator and a stable pointer hit area.</summary>
+        private Button TextButton(string name, string text, Transform parent, UnityEngine.Events.UnityAction action)
         {
-            var rect = Panel(text, parent, new Color32(222, 236, 231, 255), true);
+            var rect = Panel(name, parent, GamePalette.ButtonSurface, true);
             var button = MakeSelectable(rect);
+            rect.gameObject.AddComponent<FocusIndicator>().Initialize(FocusRing(rect));
             button.onClick.AddListener(action);
             var label = Label(text, rect, 22, TextAnchor.MiddleCenter);
             Fill(label.rectTransform, 10, 4, 10, 4);
             return button;
         }
 
-        private Button IconButton(string name, Transform parent, Sprite sprite, UnityEngine.Events.UnityAction action,
+        /// <summary>Pairs each supplied icon with a written label so its meaning does not depend on recognizing the art.</summary>
+        private Button IconButton(string name, string text, Transform parent, Sprite sprite, UnityEngine.Events.UnityAction action,
             out Image icon, out Text caption)
         {
             var rect = Panel(name, parent, Color.clear, true, false);
             var button = MakeSelectable(rect);
+            rect.gameObject.AddComponent<FocusIndicator>().Initialize(FocusRing(rect));
             button.onClick.AddListener(action);
-            var picture = Picture(name + " icono", rect, sprite);
+            var picture = Picture(name + " Icon", rect, sprite);
             Place(picture, 21, 0, 58, 58);
             icon = picture.GetComponent<Image>();
-            caption = Label(name, rect, 18, TextAnchor.MiddleCenter);
+            caption = Label(text, rect, 18, TextAnchor.MiddleCenter);
             Place(caption.rectTransform, 0, 58, 100, 24);
             return button;
         }
 
+        /// <summary>Expresses rectangles from the top-left so layout calculations use consistent coordinates.</summary>
         private static void Place(RectTransform rect, float left, float top, float width, float height)
         {
             rect.anchorMin = rect.anchorMax = new Vector2(0, 1);
@@ -458,6 +516,7 @@ namespace ThePrimeGame
             rect.sizeDelta = new Vector2(width, height);
         }
 
+        /// <summary>Stretches a child inside its parent using explicit margins.</summary>
         private static void Fill(RectTransform rect, float left = 0, float top = 0, float right = 0, float bottom = 0)
         {
             rect.anchorMin = Vector2.zero;
@@ -467,6 +526,7 @@ namespace ThePrimeGame
             rect.offsetMax = new Vector2(-right, -top);
         }
 
+        /// <summary>Draws small interface surfaces procedurally; this creates no generative-AI image asset.</summary>
         private Sprite RoundedSprite(bool outline = false)
         {
             const int size = 64;
@@ -498,6 +558,7 @@ namespace ThePrimeGame
                 100, 0, SpriteMeshType.FullRect, new Vector4(20, 20, 20, 20));
         }
 
+        /// <summary>Releases generated textures and sprites when the level is unloaded or Play stops.</summary>
         private void OnDestroy()
         {
             if (rounded != null) Destroy(rounded);
