@@ -47,8 +47,29 @@ Soy estudiante de Ingeniería Multimedia, con intereses en el desarrollo front-e
 | Selena Ortiz | Game Designer | Gestora del repositorio |
 | Julian Tunjuelo | Game Programmer | Colaborador |
 
+### Luisa Sanabria Lujan
+
+![Foto de perfil](luisa.jpeg)
+
+- **Ubicación:** Bogotá, Colombia  
+- **Rol de industria:** QA Tester
+- **Plato favorito:**  
+
+![Plato favorito](ajiaco.jpg)
+
+**Perfil**  
+Soy estudiante de Ingeniería Multimedia, con intereses en el Desarrollo de videojueos. En este proyecto probare el minijuego con la lista de WCAG 2.2/DUA, redactar el Reporte de accesibilidad
+## Roles del equipo
+
+| Integrante | Rol de industria | Rol en el repo |
+|---|---|---|
+| Selena Ortiz | Game Designer | Gestora del repositorio |
+| Julian Tunjuelo | Game Programmer | Colaborador |
+| Luisa Sanabria | QA TESTER | Colaborador |
+
 ## Estructura del repositorio
 
 - `SelenaOr/` — aportes y evidencias de Selena  
-- `Julian_Tunjuelo/` — aportes y evidencias de Julian  
+- `Julian_Tunjuelo/` — aportes y evidencias de Julian
+- `LuisaSanabriaLuján` — aportes y evidencias de Luisa
 - `README.md` — este archivo (perfiles consolidados en `main`)
