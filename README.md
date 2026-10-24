@@ -49,13 +49,13 @@ Soy estudiante de Ingeniería Multimedia, con intereses en el desarrollo front-e
 
 ### Luisa Sanabria Lujan
 
-![Foto de perfil](luisa.jpeg)
+![Foto de perfil](LuisaSanabriaLuján/luisa.jpeg)
 
 - **Ubicación:** Bogotá, Colombia  
 - **Rol de industria:** QA Tester
 - **Plato favorito:**  
 
-![Plato favorito](ajiaco.jpg)
+![Plato favorito](LuisaSanabriaLuján/ajiaco.jpg)
 
 **Perfil**  
 Soy estudiante de Ingeniería Multimedia, con intereses en el Desarrollo de videojueos. En este proyecto probare el minijuego con la lista de WCAG 2.2/DUA, redactar el Reporte de accesibilidad
