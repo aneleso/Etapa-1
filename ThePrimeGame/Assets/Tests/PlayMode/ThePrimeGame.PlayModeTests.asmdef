@@ -1,0 +1,5 @@
+{
+  "name": "ThePrimeGame.PlayModeTests",
+  "references": ["ThePrimeGame.Runtime", "Unity.InputSystem", "UnityEngine.UI"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}

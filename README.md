@@ -1,75 +1,108 @@
-# Etapa 1 - Reconocimiento del entorno y armado de equipos con SCV
+# The PrimeGame · v2.0
 
-**Equipo:** The Primegame  
-**Curso:** Programación para Videojuegos (213027A)  
-**Repositorio:** público · Tag de entrega: `v1.0`
+Juego de encaje tranquilo con cuatro piezas. Utiliza los sprites y los cuatro sonidos originales del proyecto de la rama `selena_ortiz`.
 
-## Descripción del proyecto
+## Abrir y jugar
 
-El equipo The Primegame planea y desarrolla, a lo largo del curso, un prototipo digital en Unity de un videojuego de construcción con bloques estructurados, con propósito educativo y social. La propuesta se inspira en experiencias como LEGO Duplo, bloques de madera geométricos y construcciones magnéticas: piezas claras, modelos de pocos pasos y feedback inmediato, pensadas para niñas y niños con autismo —y para quienes los acompañan— que se benefician del orden, la repetición y el control al jugar.
+1. En Unity Hub, añade la carpeta `ThePrimeGame`, que contiene `Assets`, `Packages` y `ProjectSettings`.
+2. Ábrela con **Unity 6000.3.0f1** y espera a que termine de importar los paquetes.
+3. Abre `Assets/Scenes/Level1.unity` y pulsa **Play**. La interfaz se genera al iniciar el juego.
 
-El objetivo del prototipo es facilitar la participación y el aprendizaje mediante mecánicas de ensamblaje guiado, planificación simple y comprobación visual de lo construido. En esta Etapa 1 el equipo se organiza con roles de la industria, canal de comunicación y un repositorio remoto con control de versiones; cada integrante documenta su perfil en el README y evidencia su aporte con commits propios hasta el tag v1.0.
+En este equipo, la copia de trabajo registrada en Hub está en `C:\Users\User\Documents\Codex\PrimeGame`. Utiliza esa entrada para evitar el límite de rutas largas de Windows. Si extraes el proyecto ZIP en otro lugar, elige una ruta corta, por ejemplo `C:\UnityProjects\ThePrimeGame`.
 
-## Integrantes y perfiles
+No es necesario descargar C# por separado: el Editor compila los scripts del proyecto. Visual Studio sirve para editarlos y depurarlos.
 
-### Selena Alejandra Ortiz Zambrano
+## Cómo se juega
 
-![Foto de perfil](SelenaOr/selena_ortiz.png)
+Coloca cada bloque sobre el destino que tiene el mismo número. El azul (1) va abajo, el menta (2) en medio, el crema (3) arriba y el coral (4) a la derecha. Puedes colocarlos en cualquier orden. Al terminar aparece una estrella y puedes volver a jugar o ver tu construcción.
 
-- **Ubicación:** Bogotá, Colombia  
-- **Rol de industria:** Game Designer / gestora del repositorio  
-- **Plato favorito:**  
+- **Ratón o pantalla táctil:** arrastra y suelta. También puedes pulsar una pieza y después su destino.
+- **Teclado:** Tab / Mayús+Tab o flechas para recorrer controles; Enter o Espacio para activarlos. Los números 1–4 seleccionan una pieza.
+- **H / Ayuda:** resalta el destino de una pieza pendiente.
+- **M / Sonido:** activa o desactiva el audio.
+- **R / Reiniciar:** vuelve a empezar; si hay progreso, pide confirmación.
+- **Esc:** cancela la selección o cierra el diálogo.
+- **Animaciones:** permite quitar los movimientos de encaje, retorno y celebración. La preferencia y el silencio se conservan entre sesiones.
 
-![Plato favorito](SelenaOr/arroz%20con%20pollo.jpg)
+La música comienza después de la primera interacción con una pieza. No hay cronómetro, puntuación negativa ni sonido de error. Una pieza que se suelta fuera de su lugar vuelve a la bandeja; una pieza colocada queda fija hasta reiniciar.
 
-**Perfil**  
-Soy estudiante de Ingeniería Multimedia, con especial interés en el diseño gráfico, la ilustración y la edición de video. En este proyecto asumo el rol de gestora del repositorio y aporto en el diseño del juego, con disposición de seguir fortaleciendo mis habilidades en cada etapa del desarrollo.
+## Recursos y correcciones
 
----
+- Conserva el arte original, sin redibujar las piezas ni los botones.
+- `PrimeGameAssets.asset` reúne las referencias a los sprites y al audio.
+- `Level1` sustituye la escena inicial sin comportamiento y conserva su GUID.
+- Los destinos tienen nombres e identificadores estables. Se corrige la asociación entre los destinos superior e inferior descrita de forma invertida en el documento.
+- El bloque adopta el tamaño de su destino al encajar; no se mantiene la diferencia de escalas de la escena anterior.
+- La interfaz utiliza uGUI y el nuevo Input System que ya tenía configurado el proyecto.
+- Se utiliza el logo válido; desaparecen de la escena las dos referencias antiguas que estaban rotas.
+- El reinicio limpia el estado y cancela las animaciones en curso, sin recargar los recursos.
 
-### Julian Esteban Tunjuelo Henao
+## Organización del código
 
-![Foto de perfil](Julian_Tunjuelo/JULIAN%20T.jpg)
+| Archivo | Responsabilidad |
+|---|---|
+| `GameSession.cs` | Reglas de colocación, conteo único y reinicio. |
+| `GameManager.cs` | Coordina selección, encaje, ayuda, victoria y preferencias. |
+| `DraggableBlock.cs` | Arrastre, selección y movimiento hacia el destino o la bandeja. |
+| `DropTarget.cs` | Destinos interactivos, pistas y foco visible. |
+| `GameHud.cs` | Interfaz adaptable, navegación y diálogos. |
+| `AudioToggle.cs` | Música, efectos y silencio persistente. |
+| `PrimeGameAssets.cs` | Referencias al arte y al audio original. |
+| `GameText.cs` | Textos de interfaz cargados desde JSON. |
+| `GamePalette.cs` | Colores compartidos y comprobables. |
+| `FocusIndicator.cs` | Foco visible en los controles estándar. |
 
-- **Ubicación:** Bogotá, Colombia  
-- **Rol de industria:** Game Programmer / Gameplay Programmer  
-- **Plato favorito:**  
+`requireBottomFirst` en el componente GameManager permite exigir la construcción de abajo hacia arriba. Está desactivado para que la experiencia inicial sea sencilla.
 
-![Plato favorito](Julian_Tunjuelo/Ravioli.jpg)
+## Pruebas y compilación
 
-**Perfil**  
-Soy estudiante de Ingeniería Multimedia, con intereses en el desarrollo front-end de software. En este proyecto aporto desde la programación del prototipo y el trabajo colaborativo con control de versiones.
+En el menú **The PrimeGame → Validate game (EditMode and PlayMode)** se ejecutan las pruebas de reglas e interacción. Los resultados NUnit XML se guardan en `ThePrimeGame/TestResults`. También pueden ejecutarse desde **Window → General → Test Runner**.
 
-## Roles del equipo
+Las pruebas cubren destinos incorrectos, eventos repetidos, orden opcional, reinicio, entrada de ratón y teclado, arrastre, cancelación del reinicio, victoria y persistencia de preferencias. Su existencia no sustituye revisar el resultado de cada ejecución.
 
-| Integrante | Rol de industria | Rol en el repo |
-|---|---|---|
-| Selena Ortiz | Game Designer | Gestora del repositorio |
-| Julian Tunjuelo | Game Programmer | Colaborador |
+Validación de v2.0 en Unity 6000.3.0f1: el resumen verificado está en [docs/Validation.md](docs/Validation.md). La comprobación en Play también completó una partida por clic, usó Ayuda, canceló un reinicio y volvió a jugar después de la victoria.
 
-### Luisa Sanabria Lujan
+**The PrimeGame → Build for Windows** genera `ThePrimeGame/Builds/Windows/ThePrimeGame.exe`. La instalación del Editor debe incluir soporte de compilación para Windows. Para reconstruir la escena y sus referencias utiliza **The PrimeGame → Create or update playable level**; este comando reemplaza el contenido de Level1.
 
-![Foto de perfil](LuisaSanabriaLuján/luisa.jpeg)
+La entrega está orientada a Windows. La entrada táctil y la distribución vertical están implementadas, pero publicar en Android o iOS requiere sus módulos de compilación y pruebas en dispositivos reales. No se ha añadido integración con lectores de pantalla.
 
-- **Ubicación:** Bogotá, Colombia  
-- **Rol de industria:** QA Tester
-- **Plato favorito:**  
 
-![Plato favorito](LuisaSanabriaLuján/ajiaco.jpg)
+## Accesibilidad y organización
 
-**Perfil**  
-Soy estudiante de Ingeniería Multimedia, con intereses en el Desarrollo de videojueos. En este proyecto probare el minijuego con la lista de WCAG 2.2/DUA, redactar el Reporte de accesibilidad
-## Roles del equipo
+La interfaz combina números, nombres de colores, bordes visibles, mensajes y efectos sonoros. Las descripciones del audio permanecen disponibles al silenciarlo y dentro de los diálogos. La música comienza tras una interacción intencional. Hay foco de teclado visible y alternativa por dos clics para cada arrastre.
 
-| Integrante | Rol de industria | Rol en el repo |
-|---|---|---|
-| Selena Ortiz | Game Designer | Gestora del repositorio |
-| Julian Tunjuelo | Game Programmer | Colaborador |
-| Luisa Sanabria | QA TESTER | Colaborador |
+Se aplican criterios seleccionados de WCAG 2.2 y DUA. Las medidas y limitaciones están en [docs/Accessibility.md](docs/Accessibility.md); no constituye una certificación integral de conformidad.
 
-## Estructura del repositorio
+Todo el código C# de la aplicación, herramientas del Editor y pruebas usa identificadores, nombres de objetos, comentarios y mensajes técnicos en inglés. Los textos del jugador están en `ThePrimeGame/Assets/Resources/Localization/Spanish.json`. Los nombres heredados de recursos se conservan.
 
-- `SelenaOr/` — aportes y evidencias de Selena  
-- `Julian_Tunjuelo/` — aportes y evidencias de Julian
-- `LuisaSanabriaLuján` — aportes y evidencias de Luisa
-- `README.md` — este archivo (perfiles consolidados en `main`)
+```text
+ThePrimeGame/
+  Assets/Editor/         Preparación, pruebas y compilación
+  Assets/Scripts/        Reglas, interacción e interfaz
+  Assets/Resources/      Textos de la interfaz
+  Assets/Scenes/         Level1
+  Assets/Settings/       Referencias y renderizado
+  Assets/Sprites/        Sprites originales
+  Assets/audio/          Audios originales
+  Assets/Tests/          EditMode y PlayMode
+  Packages/             Dependencias
+  ProjectSettings/      Configuración
+  docs/                 Documentación incluida en el ZIP del proyecto
+```
+
+En el repositorio, `docs/` está en la raíz, junto a [CONTRIBUTORS.md](CONTRIBUTORS.md). Se conservan las carpetas históricas de integrantes. Cachés, compilaciones, resultados locales y el guion están excluidos de Git. [docs/Development.md](docs/Development.md) explica las decisiones y el alcance del uso de IA.
+
+## Versionado
+
+La entrega de esta implementación corresponde a la etiqueta anotada `v2.0`, con versión de producto `2.0`. Los commits identifican a Julian Tunjuelo como responsable con la identidad proporcionada por el usuario. Se conserva el historial de `selena_ortiz` sin atribuir aportes nuevos a otros integrantes.
+
+Para otra versión, ejecuta pruebas y compilación, revisa los cambios, realiza un commit con tu identidad real y crea una etiqueta anotada sobre ese commit. Cada integrante debe registrar sus propios aportes reales.
+
+
+## Contexto del curso y equipo
+
+Este prototipo forma parte del proyecto educativo y social The Primegame del curso Programación para Videojuegos (213027A). La propuesta busca una experiencia de construcción clara, repetible y sin presión de tiempo, pensada para niñas y niños con autismo y sus acompañantes; sus beneficios requieren evaluación con usuarios.
+
+Los perfiles originales y los roles declarados se conservan en [el contexto de la etapa inicial](docs/Etapa-1-Context.md), en [SelenaOr/README.md](SelenaOr/README.md) y en [Julian_Tunjuelo/README.md](Julian_Tunjuelo/README.md). Los aportes verificables de la implementación están en [CONTRIBUTORS.md](CONTRIBUTORS.md).
+
+El juego se integra en la rama `Julian_Tunjuelo`, conservando sus aportes anteriores, el estado actual de `main` y los commits de desarrollo basados en los recursos de `selena_ortiz`.
