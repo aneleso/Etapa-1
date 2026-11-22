@@ -13,6 +13,7 @@ namespace ThePrimeGame
     {
         public Canvas Canvas { get; private set; }
         public RectTransform DragLayer { get; private set; }
+        internal BoardFeedback Feedback { get; private set; }
         public DraggableBlock[] Pieces { get; } = new DraggableBlock[4];
         public DropTarget[] Targets { get; } = new DropTarget[4];
         public bool ModalOpen => restartOverlay.gameObject.activeSelf || victoryOverlay.gameObject.activeSelf;
@@ -134,6 +135,10 @@ namespace ThePrimeGame
                 16, TextAnchor.MiddleCenter).rectTransform;
             DragLayer = Empty("Moving Pieces", root);
             Fill(DragLayer);
+            var feedbackLayer = Empty("Board Feedback", root);
+            Fill(feedbackLayer);
+            Feedback = feedbackLayer.gameObject.AddComponent<BoardFeedback>();
+            Feedback.Initialize(Targets.Length);
             BuildOverlays();
             // The sound control remains above modal overlays and is always reachable.
             soundButton = IconButton("Sound Button", GameText.Get("soundCaption"), root, assets.soundOn, manager.ToggleSound, out soundImage, out soundText);
@@ -209,6 +214,7 @@ namespace ThePrimeGame
         /// <summary>Moves focus into the confirmation dialog to keep underlying controls out of the keyboard path.</summary>
         public void ShowRestartConfirmation()
         {
+            Feedback.ClearGuide();
             restartOverlay.gameObject.SetActive(true);
             RefreshNavigation();
             EventSystem.current.SetSelectedGameObject(keepPlaying.gameObject);

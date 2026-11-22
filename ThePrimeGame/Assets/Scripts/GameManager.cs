@@ -57,6 +57,7 @@ namespace ThePrimeGame
         {
             if (Selected != null) Selected.SetSelected(false);
             Selected = null;
+            Hud.Feedback.ClearGuide();
             foreach (var target in Hud.Targets) target.SetHint(false);
         }
 
@@ -85,14 +86,14 @@ namespace ThePrimeGame
                     : GameText.Get("wrongTarget", PrimeGameAssets.Number(piece.Id)));
                 return false;
             }
-            piece.Dock(target);
             target.SetOccupied(true);
             IsDragging = false;
             ClearSelection();
             Audio.Snap();
+            bool completesLevel = Session.IsComplete;
+            piece.Dock(target, () => OnPieceSettled(target, completesLevel));
             Hud.UpdateProgress(Session.PlacedCount);
-            Hud.Message(Session.IsComplete ? GameText.Get("victoryTitle") : GameText.Get("piecePlaced"));
-            if (Session.IsComplete) celebration = StartCoroutine(Celebrate());
+            Hud.Message(completesLevel ? GameText.Get("victoryTitle") : GameText.Get("piecePlaced"));
             return true;
         }
 
@@ -114,7 +115,9 @@ namespace ThePrimeGame
                     if (!candidate.IsPlaced && !candidate.IsReturning) { piece = candidate; break; }
             if (piece == null) return;
             SelectPiece(piece);
-            Hud.Targets[(int)piece.Id].SetHint(true);
+            var target = Hud.Targets[(int)piece.Id];
+            target.SetHint(true);
+            if (!ReducedMotion) Hud.Feedback.ShowGuide(target);
             Hud.Message(GameText.Get("hint", PrimeGameAssets.Number(piece.Id)));
         }
 
@@ -132,6 +135,7 @@ namespace ThePrimeGame
             PlayerPrefs.SetInt(MotionKey, ReducedMotion ? 1 : 0);
             PlayerPrefs.Save();
             Hud.UpdateMotion(ReducedMotion);
+            if (ReducedMotion) Hud.Feedback.Clear();
         }
 
         /// <summary>Protects partial progress with a confirmation dialog and ignores restart during a drag.</summary>
@@ -148,6 +152,7 @@ namespace ThePrimeGame
             if (celebration != null) StopCoroutine(celebration);
             celebration = null;
             ClearSelection();
+            Hud.Feedback.Clear();
             IsDragging = false;
             Session.Reset();
             Hud.HideModal();
@@ -159,10 +164,17 @@ namespace ThePrimeGame
             EventSystem.current?.SetSelectedGameObject(Hud.Pieces[0].gameObject);
         }
 
-        /// <summary>Waits for the final snap before showing success; reduced motion removes that delay.</summary>
-        private IEnumerator Celebrate()
+        /// <summary>Starts feedback after the piece reaches its slot, keeping it clear of the victory dialog.</summary>
+        private void OnPieceSettled(DropTarget target, bool completesLevel)
         {
-            yield return new WaitForSecondsRealtime(ReducedMotion ? 0f : 0.3f);
+            if (!ReducedMotion) Hud.Feedback.PlaySnap(target);
+            if (completesLevel) celebration = StartCoroutine(Celebrate(target));
+        }
+
+        private IEnumerator Celebrate(DropTarget target)
+        {
+            yield return null;
+            while (Hud.Feedback.IsSnapPlaying(target)) yield return null;
             Audio.Success();
             Hud.ShowVictory();
             celebration = null;

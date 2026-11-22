@@ -18,10 +18,10 @@ Coloca cada bloque sobre el destino que tiene el mismo número. El azul (1) va a
 
 - **Ratón o pantalla táctil:** arrastra y suelta. También puedes pulsar una pieza y después su destino.
 - **Teclado:** Tab / Mayús+Tab o flechas para recorrer controles; Enter o Espacio para activarlos. Los números 1–4 seleccionan una pieza.
-- **H / Ayuda:** resalta el destino de una pieza pendiente.
+- **H / Ayuda:** resalta el destino de una pieza pendiente. Con las animaciones activadas, una mano señala el hueco.
 - **M / Sonido:** activa o desactiva el audio.
 - **R / Reiniciar:** vuelve a empezar; si hay progreso, pide confirmación.
 - **Esc:** cancela la selección o cierra el diálogo.
-- **Animaciones:** permite quitar los movimientos de encaje, retorno y celebración. La preferencia y el silencio se conservan entre sesiones.
+- **Animaciones:** permite desactivar la mano guía, el destello y los movimientos de encaje, retorno y celebración. La ayuda conserva el contorno y el texto. La preferencia y el silencio se conservan entre sesiones.
 
-
+Cuando la pieza llega a su hueco, el destello reproduce ocho fotogramas a 12 fps una sola vez.
