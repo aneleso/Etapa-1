@@ -91,7 +91,7 @@ namespace ThePrimeGame
         }
 
         /// <summary>Locks the piece before animation so repeated drop or click events cannot place it again.</summary>
-        public void Dock(DropTarget target)
+        public void Dock(DropTarget target, System.Action onSettled)
         {
             StopMotion();
             IsPlaced = true;
@@ -101,7 +101,7 @@ namespace ThePrimeGame
             button.interactable = false;
             SetSelected(false);
             Rect.SetParent(Manager.Hud.DragLayer, true);
-            motion = StartCoroutine(MoveTo(target.Rect, true));
+            motion = StartCoroutine(MoveTo(target.Rect, true, onSettled));
         }
 
         /// <summary>Returns an unsuccessful drop without an error sound or a progress penalty.</summary>
@@ -155,7 +155,7 @@ namespace ThePrimeGame
         }
 
         /// <summary>Animates with unscaled time and recalculates sizes while resizing; reduced motion completes instantly.</summary>
-        private IEnumerator MoveTo(RectTransform destination, bool placed)
+        private IEnumerator MoveTo(RectTransform destination, bool placed, System.Action onSettled = null)
         {
             Vector3 start = Rect.position;
             Vector2 startSize = Rect.sizeDelta;
@@ -177,6 +177,7 @@ namespace ThePrimeGame
             IsReturning = false;
             group.blocksRaycasts = !placed;
             motion = null;
+            onSettled?.Invoke();
         }
 
         /// <summary>Stops old coroutines before another placement or restart can change the same transform.</summary>

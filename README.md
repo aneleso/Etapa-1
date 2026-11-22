@@ -18,7 +18,7 @@ Coloca cada bloque sobre el destino que tiene el mismo número. El azul (1) va a
 
 - **Ratón o pantalla táctil:** arrastra y suelta. También puedes pulsar una pieza y después su destino.
 - **Teclado:** Tab / Mayús+Tab o flechas para recorrer controles; Enter o Espacio para activarlos. Los números 1–4 seleccionan una pieza.
-- **H / Ayuda:** resalta el destino de una pieza pendiente.
+- **H / Ayuda:** resalta el destino de una pieza pendiente. Con las animaciones activadas, la mano se acerca y lo señala con un toque.
 - **M / Sonido:** activa o desactiva el audio.
 - **R / Reiniciar:** vuelve a empezar; si hay progreso, pide confirmación.
 - **Esc:** cancela la selección o cierra el diálogo.
@@ -36,6 +36,7 @@ La música comienza después de la primera interacción con una pieza. No hay cr
 - La interfaz utiliza uGUI y el nuevo Input System que ya tenía configurado el proyecto.
 - Se utiliza el logo válido; desaparecen de la escena las dos referencias antiguas que estaban rotas.
 - El reinicio limpia el estado y cancela las animaciones en curso, sin recargar los recursos.
+- El arte de la mano y del encaje está en `Assets/Resources/Feedback`. La mano usa dos poses de 512 × 512 con el mismo pivote en la punta del dedo. El encaje reproduce una sola vez ocho celdas de 256 × 256 a 12 fps al llegar la pieza. Con las animaciones desactivadas, la ayuda conserva el contorno y el texto, y se omiten ambos efectos.
 
 ## Organización del código
 

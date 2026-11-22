@@ -202,7 +202,7 @@ namespace ThePrimeGame.Tests
                 game.SelectPiece(game.Hud.Pieces[i]);
                 game.PlaceSelected(game.Hud.Targets[i]);
             }
-            yield return new WaitForSecondsRealtime(0.5f);
+            yield return WaitForFeedback(() => game.Hud.VictoryVisible, "The victory dialog never opened.");
             Assert.That(game.Session.IsComplete, Is.True);
             Assert.That(game.Hud.VictoryVisible, Is.True);
             yield return Capture("02-victoria.png");
@@ -244,7 +244,7 @@ namespace ThePrimeGame.Tests
                 game.SelectPiece(game.Hud.Pieces[i]);
                 game.PlaceSelected(game.Hud.Targets[i]);
             }
-            yield return new WaitForSecondsRealtime(0.4f);
+            yield return WaitForFeedback(() => game.Hud.VictoryVisible, "The victory dialog never opened.");
             Assert.That(game.Hud.VictoryVisible, Is.True);
             string description = GameText.Get("audioMutedCue", GameText.Get("audioSuccess"));
             Assert.That(game.Hud.AudioDescription, Is.EqualTo(description));
@@ -283,6 +283,72 @@ namespace ThePrimeGame.Tests
                 label => label.text == GameText.Get("heading")), Is.True);
             yield return null;
         }
+
+        [UnityTest]
+        public IEnumerator GuideUsesTheSameFingertipAnchorForBothPoses()
+        {
+            game.Hint();
+            var guide = FeedbackImage("Guide Hand");
+            Sprite idle = guide.sprite;
+            Assert.That(idle.name, Is.EqualTo("hand_guide"));
+            Assert.That(guide.raycastTarget, Is.False);
+            Assert.That(guide.rectTransform.pivot.x, Is.EqualTo(0.494f).Within(0.001f));
+            Assert.That(guide.rectTransform.pivot.y, Is.EqualTo(0.172f).Within(0.001f));
+            yield return WaitForFeedback(() => guide.sprite != idle, "The guide never reached its tap pose.");
+            Assert.That(guide.sprite.name, Is.EqualTo("hand_guide_tap"));
+            Assert.That(guide.sprite.pivot, Is.EqualTo(idle.pivot));
+            Assert.That(guide.sprite.rect.size, Is.EqualTo(idle.rect.size));
+            Vector3 tapTip = guide.rectTransform.position;
+            yield return Capture("03-mano-guia.png");
+            yield return WaitForFeedback(() => guide.sprite == idle, "The guide never returned to its resting pose.");
+            Assert.That(Vector3.Distance(guide.rectTransform.position, tapTip), Is.LessThan(0.5f));
+            yield return WaitForFeedback(() => !guide.enabled, "The guide remained visible.");
+            Assert.That(game.Selected, Is.EqualTo(game.Hud.Pieces[0]));
+        }
+
+        [UnityTest]
+        public IEnumerator SnapUsesOrderedSlicesAndReducedMotionSkipsVisualEffects()
+        {
+            var effect = FeedbackImage("Snap Effect 1");
+            var guide = FeedbackImage("Guide Hand");
+            var frames = Resources.LoadAll<Sprite>("Feedback/vfx_snap_sheet");
+            System.Array.Sort(frames, (first, second) => string.CompareOrdinal(first.name, second.name));
+            Assert.That(frames.Length, Is.EqualTo(8));
+            for (int i = 0; i < frames.Length; i++)
+                Assert.That(frames[i].rect, Is.EqualTo(new Rect(256 * i, 0, 256, 256)));
+
+            game.Hint();
+            Assert.That(guide.enabled, Is.True);
+            game.PlaceSelected(game.Hud.Targets[0]);
+            Assert.That(guide.enabled, Is.False);
+            Assert.That(effect.enabled, Is.False, "No effect before the piece settles.");
+            yield return WaitForFeedback(() => effect.enabled, "The snap effect never started.");
+            Assert.That(effect.sprite, Is.EqualTo(frames[0]));
+            Assert.That(effect.raycastTarget, Is.False);
+            Assert.That(game.Hud.Pieces[0].transform.parent, Is.EqualTo(game.Hud.Targets[0].transform));
+            yield return WaitForFeedback(() => effect.sprite.rect.x >= 512f, "The snap effect stayed on its initial frame.");
+            yield return Capture("04-efecto-encaje.png");
+            yield return WaitForFeedback(() => !effect.enabled, "The snap effect did not finish its single pass.");
+            yield return null;
+            Assert.That(effect.enabled, Is.False);
+
+            game.Restart();
+            game.Hint();
+            game.ToggleMotion();
+            Assert.That(guide.enabled, Is.False);
+            game.Hint();
+            game.PlaceSelected(game.Hud.Targets[0]);
+            yield return null;
+            Assert.That(guide.enabled, Is.False);
+            Assert.That(effect.enabled, Is.False);
+            Assert.That(game.Session.PlacedCount, Is.EqualTo(1));
+        }
+
+        private Image FeedbackImage(string objectName) => game.Hud.Canvas.transform
+            .Find("Board Feedback/" + objectName).GetComponent<Image>();
+
+        private static WaitUntil WaitForFeedback(System.Func<bool> condition, string timeoutMessage) =>
+            new WaitUntil(condition, System.TimeSpan.FromSeconds(3), () => Assert.Fail(timeoutMessage));
 
         private static void Click(GameObject target)
         {
