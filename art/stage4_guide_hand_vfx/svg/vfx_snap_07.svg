@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"
+     viewBox="0 0 256 256" fill="none">
+  <title>The Primegame — snap VFX frame 07</title>
+  <defs>
+  <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="6"/>
+  </filter>
+  <filter id="ringblur" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="1.15"/>
+  </filter>
+  <radialGradient id="core" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#F6E4B0" stop-opacity="1"/>
+    <stop offset="55%" stop-color="#A8DCC4" stop-opacity="0.55"/>
+    <stop offset="100%" stop-color="#A8DCC4" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+</svg>

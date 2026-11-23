@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"
+     viewBox="0 0 256 256" fill="none">
+  <title>The Primegame — snap VFX frame 00</title>
+  <defs>
+  <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="6"/>
+  </filter>
+  <filter id="ringblur" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="1.15"/>
+  </filter>
+  <radialGradient id="core" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#F6E4B0" stop-opacity="1"/>
+    <stop offset="55%" stop-color="#A8DCC4" stop-opacity="0.55"/>
+    <stop offset="100%" stop-color="#A8DCC4" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<circle cx="128.0" cy="128.0" r="18.00" fill="url(#core)" opacity="0.210" filter="url(#glow)"/>
+<path d="M 151.50,128.00 A 23.50 23.50 0 1 1 104.50,128.00 A 23.50 23.50 0 1 1 151.50,128.00 Z M 136.50,128.00 A 8.50 8.50 0 1 0 119.50,128.00 A 8.50 8.50 0 1 0 136.50,128.00 Z" fill="#A8DCC4" fill-rule="evenodd" opacity="0.644" filter="url(#ringblur)"/>
+<path d="M 149.85,128.00 A 21.85 21.85 0 1 1 106.15,128.00 A 21.85 21.85 0 1 1 149.85,128.00 Z M 145.65,128.00 A 17.65 17.65 0 1 0 110.35,128.00 A 17.65 17.65 0 1 0 145.65,128.00 Z" fill="#89B4A0" fill-rule="evenodd" opacity="0.290" filter="url(#ringblur)"/>
+</svg>
