@@ -33,6 +33,22 @@
       "value": "{0} · {1}"
     },
     {
+      "key": "accessiblePiece",
+      "value": "Pieza {0}, {1}"
+    },
+    {
+      "key": "accessiblePiecePlaced",
+      "value": "Pieza {0}, {1}, encajada"
+    },
+    {
+      "key": "accessibleTarget",
+      "value": "Destino {0}"
+    },
+    {
+      "key": "accessibleTargetOccupied",
+      "value": "Destino {0}, ocupado"
+    },
+    {
       "key": "initialStatus",
       "value": "Elige una pieza. Aquí puedes jugar a tu ritmo."
     },
