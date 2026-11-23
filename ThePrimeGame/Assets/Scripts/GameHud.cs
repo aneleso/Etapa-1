@@ -21,6 +21,7 @@ namespace ThePrimeGame
         public string StatusMessage => status.text;
         public string AudioDescription => audioDescription.text;
         private GameManager manager;
+        private GameAccessibility accessibility;
         private PrimeGameAssets assets;
         private Font font;
         private Sprite rounded;
@@ -151,6 +152,36 @@ namespace ThePrimeGame
             UpdateMotion(manager.ReducedMotion);
             Layout();
             RefreshNavigation();
+            if (Application.platform == RuntimePlatform.WindowsPlayer) InitializeAccessibility();
+        }
+
+        private void InitializeAccessibility()
+        {
+            accessibility = gameObject.AddComponent<GameAccessibility>();
+            accessibility.Initialize();
+            foreach (var piece in Pieces)
+            {
+                int number = PrimeGameAssets.Number(piece.Id);
+                string name = PrimeGameAssets.PieceName(piece.Id);
+                accessibility.Register(piece.GetComponent<Button>(), () => GameText.Get(
+                    piece.IsPlaced ? "accessiblePiecePlaced" : "accessiblePiece", number, name));
+            }
+            foreach (var target in Targets)
+            {
+                int number = PrimeGameAssets.Number(target.Id);
+                var button = target.GetComponent<Button>();
+                accessibility.Register(button, () => GameText.Get(button.interactable
+                    ? "accessibleTarget" : "accessibleTargetOccupied", number));
+            }
+            accessibility.Register(soundButton, () => soundText.text, GameAccessibility.View.Always);
+            accessibility.Register(restartButton, () => GameText.Get("restartButton"));
+            accessibility.Register(helpButton, () => GameText.Get("helpButton"));
+            accessibility.Register(motionButton, () => motionText.text);
+            accessibility.Register(keepPlaying, () => GameText.Get("continueButton"), GameAccessibility.View.Restart);
+            accessibility.Register(confirmRestart, () => GameText.Get("confirmRestartButton"), GameAccessibility.View.Restart);
+            accessibility.Register(replay, () => GameText.Get("replayButton"), GameAccessibility.View.Victory);
+            accessibility.Register(viewBuild, () => GameText.Get("viewBuildButton"), GameAccessibility.View.Victory);
+            accessibility.Publish();
         }
 
         /// <summary>Handles display changes and shortcut keys while respecting drag and modal input boundaries.</summary>
@@ -176,7 +207,11 @@ namespace ThePrimeGame
                 if (digits[i].wasPressedThisFrame) manager.SelectPiece(Pieces[i]);
         }
 
-        public void Message(string text) => status.text = text;
+        public void Message(string text)
+        {
+            status.text = text;
+            accessibility?.Announce(text);
+        }
 
         /// <summary>Mirrors sound events in text and keeps their descriptions readable inside either dialog.</summary>
         public void DescribeAudio(AudioCue cue, bool muted)
@@ -208,8 +243,21 @@ namespace ThePrimeGame
         {
             soundImage.sprite = muted ? assets.soundOff : assets.soundOn;
             soundText.text = muted ? GameText.Get("soundOff") : GameText.Get("soundOn");
+            if (accessibility != null)
+            {
+                RefreshAccessibility();
+                accessibility.Announce(soundText.text);
+            }
         }
-        public void UpdateMotion(bool reduced) => motionText.text = reduced ? GameText.Get("motionOff") : GameText.Get("motionOn");
+        public void UpdateMotion(bool reduced)
+        {
+            motionText.text = reduced ? GameText.Get("motionOff") : GameText.Get("motionOn");
+            if (accessibility != null)
+            {
+                RefreshAccessibility();
+                accessibility.Announce(motionText.text);
+            }
+        }
 
         /// <summary>Moves focus into the confirmation dialog to keep underlying controls out of the keyboard path.</summary>
         public void ShowRestartConfirmation()
@@ -335,6 +383,14 @@ namespace ThePrimeGame
                     selectOnRight = next, selectOnDown = next
                 };
             }
+            RefreshAccessibility();
+        }
+
+        private void RefreshAccessibility()
+        {
+            var view = restartOverlay.gameObject.activeSelf ? GameAccessibility.View.Restart
+                : VictoryVisible ? GameAccessibility.View.Victory : GameAccessibility.View.Board;
+            accessibility?.Refresh(view);
         }
 
         /// <summary>Computes layout in canvas units and reserves separate space for instructions, captions and controls.</summary>
@@ -388,6 +444,7 @@ namespace ThePrimeGame
             for (int i = 0; i < 3; i++)
                 Place(Targets[i].Rect, towerLeft, baseTop - i * targetHeight * 0.86f, targetWidth, targetHeight);
             Place(Targets[3].Rect, towerLeft + targetWidth + 18, baseTop, targetWidth / 2, targetHeight);
+            foreach (var target in Targets) target.UpdateTriggerSize();
             foreach (var piece in Pieces)
                 if (piece.IsPlaced) piece.Rect.sizeDelta = Targets[(int)piece.Id].Rect.sizeDelta;
             Place(statusRect, 24, h - bottom + 4, w - 48, portrait ? 58 : 38);

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace ThePrimeGame
 {
     /// <summary>Represents a numbered destination that accepts drag, click and keyboard-submit interaction.</summary>
-    public sealed class DropTarget : MonoBehaviour, IDropHandler, IPointerClickHandler,
+    public sealed class DropTarget : MonoBehaviour, IPointerClickHandler,
         ISubmitHandler, ISelectHandler, IDeselectHandler, IPointerEnterHandler, IPointerExitHandler
     {
         public PieceId Id { get; private set; }
@@ -13,6 +13,8 @@ namespace ThePrimeGame
         public GameManager Manager { get; private set; }
         private Image outline;
         private Button button;
+        private BoxCollider2D snapTrigger;
+        private DraggableBlock overlappingPiece;
         private bool hinted;
         private bool focused;
         private bool occupied;
@@ -25,15 +27,40 @@ namespace ThePrimeGame
             Id = id;
             outline = focusOutline;
             button = GetComponent<Button>();
+            snapTrigger = gameObject.AddComponent<BoxCollider2D>();
+            snapTrigger.isTrigger = true;
             RefreshOutline();
         }
 
-        /// <summary>Ignores modal or occupied targets, then asks the manager to validate the dragged piece.</summary>
-        public void OnDrop(PointerEventData data)
+        internal void UpdateTriggerSize()
         {
-            if (Manager.InputLocked || occupied) return;
-            var piece = data.pointerDrag != null ? data.pointerDrag.GetComponent<DraggableBlock>() : null;
-            if (piece != null) Manager.TryPlace(piece, this);
+            snapTrigger.size = Rect.rect.size;
+        }
+
+        internal bool Overlaps(DraggableBlock piece)
+        {
+            var distance = snapTrigger.Distance(piece.DragCollider);
+            return distance.isValid && distance.distance <= 0f;
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if (occupied || Manager.InputLocked || !other.TryGetComponent(out DraggableBlock piece)
+                || !piece.IsDragging || piece.Id != Id) return;
+            overlappingPiece = piece;
+            RefreshOutline();
+        }
+
+        private void OnTriggerExit2D(Collider2D other)
+        {
+            if (other.TryGetComponent(out DraggableBlock piece)) ClearDragPreview(piece);
+        }
+
+        internal void ClearDragPreview(DraggableBlock piece)
+        {
+            if (overlappingPiece != piece) return;
+            overlappingPiece = null;
+            RefreshOutline();
         }
 
         /// <summary>Routes a pointer click through the same placement path used by keyboard submission.</summary>
@@ -66,7 +93,7 @@ namespace ThePrimeGame
         /// <summary>Combines hint, hover and focus states while keeping completed targets visually settled.</summary>
         private void RefreshOutline()
         {
-            if (outline != null) outline.enabled = !occupied && (hinted || focused || hovered);
+            if (outline != null) outline.enabled = !occupied && (hinted || focused || hovered || overlappingPiece != null);
         }
     }
 }

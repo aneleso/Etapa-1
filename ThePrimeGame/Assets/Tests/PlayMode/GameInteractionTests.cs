@@ -153,6 +153,8 @@ namespace ThePrimeGame.Tests
         {
             var piece = game.Hud.Pieces[1];
             var target = game.Hud.Targets[1];
+            Assert.That(piece.GetComponent<Rigidbody2D>().bodyType, Is.EqualTo(RigidbodyType2D.Kinematic));
+            Assert.That(target.GetComponent<BoxCollider2D>().isTrigger, Is.True);
             var data = new PointerEventData(EventSystem.current)
             {
                 pointerDrag = piece.gameObject,
@@ -161,9 +163,11 @@ namespace ThePrimeGame.Tests
             };
             ExecuteEvents.Execute(piece.gameObject, data, ExecuteEvents.beginDragHandler);
             data.position = RectTransformUtility.WorldToScreenPoint(null, target.Rect.position);
-            data.pointerCurrentRaycast = new RaycastResult { gameObject = target.gameObject };
             ExecuteEvents.Execute(piece.gameObject, data, ExecuteEvents.dragHandler);
-            ExecuteEvents.Execute(target.gameObject, data, ExecuteEvents.dropHandler);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            Assert.That(target.transform.Find("Focus Indicator").GetComponent<Image>().enabled, Is.True);
+            Assert.That(game.Session.PlacedCount, Is.Zero, "A trigger contact must wait for release.");
             ExecuteEvents.Execute(piece.gameObject, data, ExecuteEvents.endDragHandler);
             yield return new WaitForSecondsRealtime(0.35f);
             Assert.That(game.Session.PlacedCount, Is.EqualTo(1));
@@ -183,6 +187,7 @@ namespace ThePrimeGame.Tests
             };
             piece.OnBeginDrag(data);
             data.position = new Vector2(10, 10);
+            data.pointerCurrentRaycast = new RaycastResult { gameObject = game.Hud.Targets[0].gameObject };
             piece.OnDrag(data);
             piece.OnEndDrag(data);
             Assert.That(game.Session.PlacedCount, Is.Zero);

@@ -21,6 +21,9 @@ namespace ThePrimeGame
         private CanvasGroup group;
         private Button button;
         private Image outline;
+        private Rigidbody2D dragBody;
+        private BoxCollider2D dragCollider;
+        internal BoxCollider2D DragCollider => dragCollider;
         private Vector3 grabOffset;
         private Coroutine motion;
         private bool focused;
@@ -38,6 +41,12 @@ namespace ThePrimeGame
             outline = focusOutline;
             group = gameObject.AddComponent<CanvasGroup>();
             button = GetComponent<Button>();
+            dragBody = gameObject.AddComponent<Rigidbody2D>();
+            dragBody.bodyType = RigidbodyType2D.Kinematic;
+            dragBody.useFullKinematicContacts = true;
+            dragBody.simulated = false;
+            dragCollider = gameObject.AddComponent<BoxCollider2D>();
+            dragCollider.enabled = false;
             RefreshOutline();
         }
 
@@ -67,6 +76,9 @@ namespace ThePrimeGame
             Rect.SetAsLastSibling();
             grabOffset = Rect.position - ScreenWorld(data);
             group.blocksRaycasts = false;
+            dragCollider.size = Rect.rect.size;
+            dragCollider.enabled = true;
+            dragBody.simulated = true;
         }
 
         /// <summary>Preserves the initial grab offset so the block does not jump to its center under the pointer.</summary>
@@ -75,18 +87,20 @@ namespace ThePrimeGame
             if (IsDragging && !IsPlaced) Rect.position = ScreenWorld(data) + grabOffset;
         }
 
-        /// <summary>Tries the actual drop target first; nearby snapping is only allowed over empty space.</summary>
+        /// <summary>Synchronizes the final drag position, then validates the overlap before committing the drop.</summary>
         public void OnEndDrag(PointerEventData data)
         {
-            if (!IsDragging && !IsPlaced) return;
+            if (!IsDragging) return;
+            OnDrag(data);
             IsDragging = false;
             Manager.IsDragging = false;
             dragEndedFrame = Time.frameCount;
-            if (IsPlaced) return;
+            // Release can happen before the next fixed update, so trigger events alone are not enough.
+            Physics2D.SyncTransforms();
             var hit = data.pointerCurrentRaycast.gameObject;
             var target = hit != null ? hit.GetComponentInParent<DropTarget>() : null;
-            if (target != null && Manager.TryPlace(this, target)) return;
-            if (target == null && Manager.TrySnapNearby(this)) return;
+            if (target != null ? target.Overlaps(this) && Manager.TryPlace(this, target)
+                : Manager.TrySnapNearby(this)) return;
             ReturnHome();
         }
 
@@ -94,6 +108,7 @@ namespace ThePrimeGame
         public void Dock(DropTarget target, System.Action onSettled)
         {
             StopMotion();
+            StopDragCollisions();
             IsPlaced = true;
             IsDragging = false;
             IsReturning = false;
@@ -108,6 +123,7 @@ namespace ThePrimeGame
         public void ReturnHome()
         {
             StopMotion();
+            StopDragCollisions();
             IsDragging = false;
             IsReturning = true;
             Manager.IsDragging = false;
@@ -121,6 +137,7 @@ namespace ThePrimeGame
         public void ResetToHome()
         {
             StopMotion();
+            StopDragCollisions();
             IsPlaced = IsReturning = IsDragging = selected = focused = hovered = false;
             button.interactable = true;
             group.blocksRaycasts = true;
@@ -185,6 +202,15 @@ namespace ThePrimeGame
         {
             if (motion != null) StopCoroutine(motion);
             motion = null;
+        }
+
+        private void StopDragCollisions()
+        {
+            dragCollider.enabled = false;
+            // Let the canvas own the transform again during the return or docking animation.
+            dragBody.simulated = false;
+            // Disabling a collider can end a contact without delivering an exit to its counterpart.
+            foreach (var target in Manager.Hud.Targets) target.ClearDragPreview(this);
         }
     }
 }

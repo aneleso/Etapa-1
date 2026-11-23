@@ -102,7 +102,7 @@ namespace ThePrimeGame
         {
             var target = Hud.Targets[(int)piece.Id];
             float distance = Vector2.Distance(piece.Rect.position, target.Rect.position) / Hud.Canvas.scaleFactor;
-            return distance <= 72f && TryPlace(piece, target);
+            return distance <= 72f && target.Overlaps(piece) && TryPlace(piece, target);
         }
 
         /// <summary>Finds a remaining piece and highlights its matching destination without penalties.</summary>
